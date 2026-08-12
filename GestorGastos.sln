@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorGastos.API", "GestorGastos.API\GestorGastos.API.csproj", "{5BFE8DA5-B9E9-462D-AE11-A2A15151E983}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorGastos.Domain", "GestorGastos.Domain\GestorGastos.Domain.csproj", "{67B65007-2C87-4007-85D6-FF177D149BE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorGastos.Data", "GestorGastos.Data\GestorGastos.Data.csproj", "{7B74FBAF-0C03-40D7-A8C6-C4866AFA8CC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorGastos.Services", "GestorGastos.Services\GestorGastos.Services.csproj", "{CBB0928C-8ECE-4082-91ED-A426A44AB8A1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5BFE8DA5-B9E9-462D-AE11-A2A15151E983}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5BFE8DA5-B9E9-462D-AE11-A2A15151E983}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5BFE8DA5-B9E9-462D-AE11-A2A15151E983}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5BFE8DA5-B9E9-462D-AE11-A2A15151E983}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67B65007-2C87-4007-85D6-FF177D149BE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67B65007-2C87-4007-85D6-FF177D149BE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67B65007-2C87-4007-85D6-FF177D149BE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67B65007-2C87-4007-85D6-FF177D149BE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B74FBAF-0C03-40D7-A8C6-C4866AFA8CC1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B74FBAF-0C03-40D7-A8C6-C4866AFA8CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B74FBAF-0C03-40D7-A8C6-C4866AFA8CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B74FBAF-0C03-40D7-A8C6-C4866AFA8CC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBB0928C-8ECE-4082-91ED-A426A44AB8A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBB0928C-8ECE-4082-91ED-A426A44AB8A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBB0928C-8ECE-4082-91ED-A426A44AB8A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBB0928C-8ECE-4082-91ED-A426A44AB8A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
