@@ -5,7 +5,11 @@ namespace GestorGastos.Data.Context;
 
 public class DbSistemaGastosContext : DbContext
 {
-
+    public DbSet<Usuario> Usuarios { get; set; }
+    public DbSet<Gasto> Gastos { get; set; }
+    public DbSet<Categoria> Categorias { get; set; }
+    public DbSet<MetodoPago> MetodoPagos { get; set; }
+    
     public DbSistemaGastosContext(DbContextOptions<DbSistemaGastosContext> db) : base(db)
     {
     }
@@ -13,6 +17,8 @@ public class DbSistemaGastosContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.HasDefaultSchema("GestorGastos");
         
         modelBuilder.Entity<Gasto>()
             .Property(g => g.Monto)
@@ -30,10 +36,5 @@ public class DbSistemaGastosContext : DbContext
             .HasForeignKey(g => g.MetodoPagoId)
             .OnDelete(DeleteBehavior.Restrict);
     }
-    
-    public DbSet<Usuario> Usuarios { get; set; }
-    public DbSet<Gasto> Gastos { get; set; }
-    public DbSet<Categoria> Categorias { get; set; }
-    public DbSet<MetodoPago> MetodoPagos { get; set; }
 
 }

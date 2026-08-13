@@ -1,8 +1,10 @@
 using GestorGastos.Domain.Models;
-namespace GestorGastos.Domain.Interfaces;
+using GestorGastos.Services.DTOs;
+
+namespace GestorGastos.Services.Interfaces;
 
 public interface IUsuarioService
 {
-    Task<List<Usuario>> ObtenerTodosUsuariosAsync();
-    Task RegistrarUsuarioAsync(RegistroDto usuarioRecibido);
+    Task<long> RegistrarUsuarioAsync(RegistroDto usuarioRecibido);
+    Task<RespuestaAuthDto> AutenticarUsuarioAsync(InicioSesionDto usuarioRecibido);
 }

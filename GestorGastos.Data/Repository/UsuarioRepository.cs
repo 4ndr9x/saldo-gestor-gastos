@@ -7,15 +7,21 @@ namespace GestorGastos.Data.Repository;
 public class UsuarioRepository : IUsuarioRepository
 {
 
-    private readonly DbSistemaGastosContext Contexto;
+    private readonly DbSistemaGastosContext _contexto;
 
     public UsuarioRepository(DbSistemaGastosContext contexto)
     {
-        Contexto = contexto;
+        _contexto = contexto;
     }
 
-    public async Task<List<Usuario>> BuscarTodosLosUsuarios()
+    public async Task<Usuario?> BuscarUsuarioPorEmail(string email)
     {
-        return Contexto.Usuarios.ToList();
+        return _contexto.Usuarios.FirstOrDefault(u => u.Email == email);
+    }
+
+    public async Task RegistrarUsuario(Usuario usuarioRecibido)
+    {
+        _contexto.Usuarios.Add(usuarioRecibido);
+        await _contexto.SaveChangesAsync();
     }
 }

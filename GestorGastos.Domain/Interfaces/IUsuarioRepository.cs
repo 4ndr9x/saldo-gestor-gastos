@@ -4,5 +4,6 @@ namespace GestorGastos.Domain.Interfaces;
 
 public interface IUsuarioRepository
 {
-    Task<List<Usuario>> BuscarTodosLosUsuarios();
+    Task<Usuario?> BuscarUsuarioPorEmail(string email);
+    Task RegistrarUsuario(Usuario usuarioRecibido);
 }

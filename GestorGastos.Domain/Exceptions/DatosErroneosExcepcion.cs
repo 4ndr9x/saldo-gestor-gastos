@@ -1,8 +1,8 @@
 namespace GestorGastos.Domain.Exceptions;
 
-public class DatosErroneosException : ErrorApi
+public class DatosErroneosExcepcion : ErrorApi
 {
-    public DatosErroneosException(string msg, List<string> detalles) : base(msg)
+    public DatosErroneosExcepcion(string msg, List<string> detalles) : base(msg)
     {
         CodigoHttp = 400;
         Detalles = detalles;

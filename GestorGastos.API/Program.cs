@@ -1,13 +1,15 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using GestorGastos.API.Middlewares;
 using GestorGastos.Data.Context;
 using GestorGastos.Data.Repository;
 using GestorGastos.Domain.Interfaces;
+using GestorGastos.Services.Interfaces;
 using GestorGastos.Services.Services;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 //builder.Services.AddOpenApi();
 builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
@@ -16,6 +18,27 @@ builder.Services.AddSqlServer<DbSistemaGastosContext>(builder.Configuration.GetC
 // Inyecciones de dependencias
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+
+// Configuracion del JWT
+string llaveSecreta = builder.Configuration["JwtSettings:SecretKey"]!;
+
+builder.Services.AddAuthentication(opciones =>
+{
+    opciones.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    opciones.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+}).AddJwtBearer(opciones =>
+{
+    opciones.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(llaveSecreta))
+    };
+});
 
 var app = builder.Build();
 
@@ -33,6 +56,9 @@ app.UseMiddleware<RequestIdMiddleware>();
 app.UseMiddleware<GestorErroresMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 

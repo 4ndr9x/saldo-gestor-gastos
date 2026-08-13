@@ -17,6 +17,7 @@ namespace GestorGastos.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("GestorGastos")
                 .HasAnnotation("ProductVersion", "10.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -44,7 +45,7 @@ namespace GestorGastos.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Categorias");
+                    b.ToTable("Categorias", "GestorGastos");
                 });
 
             modelBuilder.Entity("GestorGastos.Domain.Models.Gasto", b =>
@@ -83,7 +84,7 @@ namespace GestorGastos.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("Gastos");
+                    b.ToTable("Gastos", "GestorGastos");
                 });
 
             modelBuilder.Entity("GestorGastos.Domain.Models.MetodoPago", b =>
@@ -109,7 +110,7 @@ namespace GestorGastos.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("MetodoPagos");
+                    b.ToTable("MetodoPagos", "GestorGastos");
                 });
 
             modelBuilder.Entity("GestorGastos.Domain.Models.Usuario", b =>
@@ -134,7 +135,7 @@ namespace GestorGastos.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Usuarios");
+                    b.ToTable("Usuarios", "GestorGastos");
                 });
 
             modelBuilder.Entity("GestorGastos.Domain.Models.Categoria", b =>

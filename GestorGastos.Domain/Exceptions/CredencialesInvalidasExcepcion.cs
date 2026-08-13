@@ -1,8 +1,8 @@
 namespace GestorGastos.Domain.Exceptions;
 
-public class CredencialesInvalidasException : ErrorApi
+public class CredencialesInvalidasExcepcion : ErrorApi
 {
-    public CredencialesInvalidasException(string msg) : base(msg)
+    public CredencialesInvalidasExcepcion(string msg) : base(msg)
     {
         CodigoHttp = 401;
     }
