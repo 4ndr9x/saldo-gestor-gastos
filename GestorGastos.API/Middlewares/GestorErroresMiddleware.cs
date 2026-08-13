@@ -33,7 +33,6 @@ public class GestorErroresMiddleware
             Console.WriteLine($"La respuesta ya inicio. No se pudo aplicar el formato uniforme: {excepcion}");
             return; 
         }
-        //contexto.Response.Clear();
         
         MensajeError mensajeError;
         contexto.Response.ContentType = "application/json";
@@ -41,6 +40,7 @@ public class GestorErroresMiddleware
         
         if (excepcion is ErrorApi apiException)
         {
+            contexto.Response.StatusCode = apiException.CodigoHttp;
             mensajeError = new MensajeError(apiException.CodigoHttp, apiException.Message, apiException.Detalles, requestId);
         }
         else
@@ -51,7 +51,11 @@ public class GestorErroresMiddleware
             Console.WriteLine(excepcion);
         }
 
-        JsonSerializerOptions formato = new JsonSerializerOptions { WriteIndented = true };
+        JsonSerializerOptions formato = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
 
         string mensajeSerializado = JsonSerializer.Serialize(mensajeError, formato);
         await contexto.Response.WriteAsync(mensajeSerializado);
