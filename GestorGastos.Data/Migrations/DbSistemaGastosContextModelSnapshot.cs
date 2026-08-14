@@ -36,7 +36,8 @@ namespace GestorGastos.Data.Migrations
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<long>("UsuarioId")
                         .HasColumnType("bigint");
@@ -95,13 +96,13 @@ namespace GestorGastos.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("Icono")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<long>("UsuarioId")
                         .HasColumnType("bigint");
@@ -110,7 +111,7 @@ namespace GestorGastos.Data.Migrations
 
                     b.HasIndex("UsuarioId");
 
-                    b.ToTable("MetodoPagos", "GestorGastos");
+                    b.ToTable("MetodosPago", "GestorGastos");
                 });
 
             modelBuilder.Entity("GestorGastos.Domain.Models.Usuario", b =>
@@ -141,9 +142,9 @@ namespace GestorGastos.Data.Migrations
             modelBuilder.Entity("GestorGastos.Domain.Models.Categoria", b =>
                 {
                     b.HasOne("GestorGastos.Domain.Models.Usuario", "Usuario")
-                        .WithMany()
+                        .WithMany("Categorias")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Usuario");
@@ -179,12 +180,19 @@ namespace GestorGastos.Data.Migrations
             modelBuilder.Entity("GestorGastos.Domain.Models.MetodoPago", b =>
                 {
                     b.HasOne("GestorGastos.Domain.Models.Usuario", "Usuario")
-                        .WithMany()
+                        .WithMany("MetodosPago")
                         .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("GestorGastos.Domain.Models.Usuario", b =>
+                {
+                    b.Navigation("Categorias");
+
+                    b.Navigation("MetodosPago");
                 });
 #pragma warning restore 612, 618
         }

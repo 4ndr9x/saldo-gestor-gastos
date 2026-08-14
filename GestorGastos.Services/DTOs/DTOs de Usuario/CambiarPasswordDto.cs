@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace GestorGastos.Services.DTOs;
+namespace GestorGastos.Services.DTOs.DTOs_de_Usuario;
 
 public class CambiarPasswordDto
 {

@@ -10,14 +10,21 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddOpenApi();
-builder.Services.AddSwaggerGen();
+builder.Services.AddOpenApi();
+//builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddSqlServer<DbSistemaGastosContext>(builder.Configuration.GetConnectionString("AppConnection"));
 
 // Inyecciones de dependencias
-builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
+builder.Services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
+
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<ICategoriaService, CategoriaService>();
+builder.Services.AddScoped<IMetodoPagoService, MetodoPagoService>();
+
+// == 
 
 // Configuracion del JWT
 string llaveSecreta = builder.Configuration["JwtSettings:SecretKey"]!;
@@ -45,9 +52,9 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    //app.MapOpenApi();
-    app.MapSwagger();
-    app.MapSwaggerUI();
+    app.MapOpenApi();
+    //app.MapSwagger();
+    //app.MapSwaggerUI();
 }
 
 // Inyeccion de middlewares

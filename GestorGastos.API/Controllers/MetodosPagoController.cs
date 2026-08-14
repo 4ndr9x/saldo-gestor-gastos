@@ -1,11 +1,15 @@
 using System.Security.Claims;
 using GestorGastos.Services.DTOs.DTOs_de_MetodoPago;
 using GestorGastos.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GestorGastos.API.Controllers;
 
-public class MetodoPagoController : ControllerBase
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class MetodosPagoController : ControllerBase
 {
     private readonly IMetodoPagoService _metodoPagoService;
 
@@ -20,8 +24,7 @@ public class MetodoPagoController : ControllerBase
         string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         RespuestaMetodoPagoDto respuesta = await _metodoPagoService.CrearMetodoPagoAsync(idString, dtoRecibido);
-
-        // Apuntamos correctamente al nombre del método GET y a su parámetro idMetodoPago
+        
         return CreatedAtAction(nameof(ObtenerMetodoPagoPorId), new { idMetodoPago = respuesta.Id }, respuesta);
     }
     

@@ -6,6 +6,8 @@ public class Usuario
     public string Nombre { get; private set; }
     public string Email { get; private set; }
     public string PasswordHash { get; private set; }
+    public ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
+    public ICollection<MetodoPago> MetodosPago { get; set; } = new List<MetodoPago>();
     
     protected Usuario() { }
 
@@ -15,5 +17,15 @@ public class Usuario
         Email = email;
         PasswordHash = passwordHash;
     }
-    
+
+    public void CambiarNombre(string nuevoNombre)
+    {
+        Nombre = nuevoNombre;
+    }
+
+    public void CambiarPasswordHash(string passwordHashNuevo)
+    {
+        PasswordHash = passwordHashNuevo;
+    }
+
 }

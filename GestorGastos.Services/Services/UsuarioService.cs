@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using GestorGastos.Services.DTOs.DTOs_de_Usuario;
 using Microsoft.IdentityModel.Tokens;
 
 namespace GestorGastos.Services.Services;
@@ -21,21 +22,21 @@ public class UsuarioService : IUsuarioService
         _repositorio = repositorio;
         _configuracion = configuracion;
     }
-
+    //TODO: DEVOLVER EL USUARIO Y NO EL ID SOLO
     public async Task<long> RegistrarUsuarioAsync(RegistroDto usuarioRecibido)
     {
         Usuario? usuarioDb = await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
 
         if (usuarioDb != null)
         {
-            throw new UsuarioRegistradoExcepcion("El email introducido ya esta siendo usado.");
+            throw new ConflictoExcepcion("El email introducido ya esta siendo usado.");
         }
 
         string hashPassword = BCrypt.Net.BCrypt.HashPassword(usuarioRecibido.Password);
 
         Usuario usuarioParaRegistrar = new Usuario(usuarioRecibido.Nombre, usuarioRecibido.Email, hashPassword);
 
-        await _repositorio.RegistrarUsuario(usuarioParaRegistrar);
+        await _repositorio.RegistrarUsuarioAsync(usuarioParaRegistrar);
 
         return usuarioParaRegistrar.Id;
 
@@ -79,10 +80,83 @@ public class UsuarioService : IUsuarioService
         return new RespuestaAuthDto {Token = tokenString, NombreUsuario = usuarioDb.Nombre, Email = usuarioDb.Email};
     }
 
+    public async Task ActualizarPerfilAsync(string? idUsuario, ActualizarPerfilDto usuarioRecibido)
+    {
+        if (!long.TryParse(idUsuario, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
+        }
+        
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idConvertido);
+
+        if (usuarioDb == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
+
+        usuarioDb.CambiarNombre(usuarioRecibido.Nombre);
+        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
+
+    }
+
+    public async Task ActualizarPasswordAsync(string? idUsuario, CambiarPasswordDto usuarioRecibido)
+    {
+        
+        if (!long.TryParse(idUsuario, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
+        }
+        
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idConvertido);
+        
+        if (usuarioDb == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
+
+        bool passwordCorrecta = BCrypt.Net.BCrypt.Verify(usuarioRecibido.PasswordActual, usuarioDb.PasswordHash);
+
+        if (!passwordCorrecta)
+        {
+            List<string> detalles = new List<string> {"La contraseña actual ingresada es erronea."};
+            throw new DatosErroneosExcepcion("La contraseña no es correcta.", detalles);
+        }
+
+        string passwordNuevoEncriptado = BCrypt.Net.BCrypt.HashPassword(usuarioRecibido.PasswordNuevo);
+        
+        usuarioDb.CambiarPasswordHash(passwordNuevoEncriptado);
+
+        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
+
+    }
+
+    public async Task EliminarCuentaAsync(string? idUsuario)
+    {
+        
+        if (!long.TryParse(idUsuario, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
+        }
+        
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idConvertido);
+        
+        if (usuarioDb == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
+
+        await _repositorio.EliminarUsuarioAsync(usuarioDb);
+    }
+
     private async Task<Usuario?> ObtenerUsuarioPorEmailAsync(string email)
     {
         return await _repositorio.BuscarUsuarioPorEmail(email);
     }
-    
+
+    private async Task<Usuario?> ObtenerUsuarioPorIdAsync(long idUsuario)
+    {
+        return await _repositorio.BuscarUsuarioPorId(idUsuario);
+    }
+
 
 }

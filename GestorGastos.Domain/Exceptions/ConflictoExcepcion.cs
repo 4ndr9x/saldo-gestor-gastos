@@ -1,8 +1,8 @@
 namespace GestorGastos.Domain.Exceptions;
 
-public class TareaCompletadaExcepcion : ErrorApi
+public class ConflictoExcepcion : ErrorApi
 {
-    public TareaCompletadaExcepcion(string msg) : base(msg)
+    public ConflictoExcepcion(string msg) : base(msg)
     {
         CodigoHttp = 409;
     }

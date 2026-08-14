@@ -19,9 +19,26 @@ public class UsuarioRepository : IUsuarioRepository
         return _contexto.Usuarios.FirstOrDefault(u => u.Email == email);
     }
 
-    public async Task RegistrarUsuario(Usuario usuarioRecibido)
+    public async Task<Usuario?> BuscarUsuarioPorId(long idUsuario)
+    {
+        return _contexto.Usuarios.FirstOrDefault(u => u.Id == idUsuario);
+    }
+
+    public async Task ActualizarUsuarioAsync(Usuario usuario)
+    {
+        _contexto.Usuarios.Update(usuario);
+        await _contexto.SaveChangesAsync();
+    }
+
+    public async Task RegistrarUsuarioAsync(Usuario usuarioRecibido)
     {
         _contexto.Usuarios.Add(usuarioRecibido);
+        await _contexto.SaveChangesAsync();
+    }
+
+    public async Task EliminarUsuarioAsync(Usuario usuarioRecibido)
+    {
+        _contexto.Usuarios.Remove(usuarioRecibido);
         await _contexto.SaveChangesAsync();
     }
 }

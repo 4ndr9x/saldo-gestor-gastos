@@ -5,5 +5,8 @@ namespace GestorGastos.Domain.Interfaces;
 public interface IUsuarioRepository
 {
     Task<Usuario?> BuscarUsuarioPorEmail(string email);
-    Task RegistrarUsuario(Usuario usuarioRecibido);
+    Task RegistrarUsuarioAsync(Usuario usuarioRecibido);
+    Task<Usuario?> BuscarUsuarioPorId(long idUsuario);
+    Task ActualizarUsuarioAsync(Usuario usuario);
+    Task EliminarUsuarioAsync(Usuario usuarioRecibido);
 }

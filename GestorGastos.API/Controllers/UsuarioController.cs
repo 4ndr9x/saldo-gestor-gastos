@@ -1,8 +1,4 @@
 using System.Security.Claims;
-using GestorGastos.Domain.Exceptions;
-using GestorGastos.Domain.Interfaces;
-using GestorGastos.Domain.Models;
-using GestorGastos.Services.DTOs;
 using GestorGastos.Services.DTOs.DTOs_de_Usuario;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +8,10 @@ namespace GestorGastos.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsuariosController : ControllerBase
+public class UsuarioController : ControllerBase
 {
     private readonly IUsuarioService _usuarioService;
-    public UsuariosController(IUsuarioService usuarioService)
+    public UsuarioController(IUsuarioService usuarioService)
     {
         _usuarioService = usuarioService;
     }
