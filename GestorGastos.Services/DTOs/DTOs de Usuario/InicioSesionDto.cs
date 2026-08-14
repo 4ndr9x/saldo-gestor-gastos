@@ -8,6 +8,6 @@ public class InicioSesionDto
     [EmailAddress(ErrorMessage = "El formato del correo no es válido.")]
     public string Email { get; set; } = string.Empty;
     
-    [Required]
+    [Required(ErrorMessage = "La contraseña es obligatoria.")]
     public string Password { get; set; }
 }

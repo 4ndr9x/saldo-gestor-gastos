@@ -56,5 +56,6 @@ CodeCoverage/
 TestResult.xml
 nunit-*.xml
 
-# Jetbrains
+# Jetbrains y personalizadas
 .idea
+Migrations

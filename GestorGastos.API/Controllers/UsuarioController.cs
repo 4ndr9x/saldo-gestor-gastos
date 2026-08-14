@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using GestorGastos.Domain.Exceptions;
 using GestorGastos.Domain.Interfaces;
 using GestorGastos.Domain.Models;
 using GestorGastos.Services.DTOs;
+using GestorGastos.Services.DTOs.DTOs_de_Usuario;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,17 +34,51 @@ public class UsuariosController : ControllerBase
         return Ok(token);
     }
 
+    [Authorize]
+    [HttpPut("perfil")]
+    public async Task<IActionResult> ActualizarNombrePerfil([FromBody] ActualizarPerfilDto usuarioRecibido)
+    {
+
+        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        await _usuarioService.ActualizarPerfilAsync(idString, usuarioRecibido);
+        return Ok(new { mensaje = "Tu perfil a sido actualizado correctamente." });
+
+    }
+
+    [Authorize]
+    [HttpPut("cambiar-password")]
+    public async Task<IActionResult> ActualizarPassword([FromBody] CambiarPasswordDto usuarioRecibido)
+    {
+        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        await _usuarioService.ActualizarPasswordAsync(idString, usuarioRecibido);
+        return Ok(new { mensaje = "Tu contraseña a sido actualizada correctamente." });
+    }
+
     [HttpGet("{id:long}")]
     public IActionResult ObtenerUsuarioPorId([FromRoute] long id)
     {
         return Ok(new { id = id, mensaje = "Ya se puede implementar la ruta del usuario" });
         // TODO: MEJORAR MAS ADELANTE
     }
+
+    [Authorize]
+    [HttpDelete("cuenta")]
+    public async Task<IActionResult> EliminarUsuario()
+    {
+        
+        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+        await _usuarioService.EliminarCuentaAsync(idString);
+        return NoContent();
+
+    }
     
     //TODO: ELIMINAR ESTE METODO DE PRUEBA
     [Authorize]
     [HttpGet("perfil")]
-    public IActionResult ObtenerPerfilSeguro()
+    public IActionResult ObtenerPerfil()
     {
     
         string? idUsuario = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
