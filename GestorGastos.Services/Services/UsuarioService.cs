@@ -80,14 +80,10 @@ public class UsuarioService : IUsuarioService
         return new RespuestaAuthDto {Token = tokenString, NombreUsuario = usuarioDb.Nombre, Email = usuarioDb.Email};
     }
 
-    public async Task ActualizarPerfilAsync(string? idUsuario, ActualizarPerfilDto usuarioRecibido)
+    public async Task ActualizarPerfilAsync(long idUsuario, ActualizarPerfilDto usuarioRecibido)
     {
-        if (!long.TryParse(idUsuario, out long idConvertido))
-        {
-            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
-        }
         
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idConvertido);
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
 
         if (usuarioDb == null)
         {
@@ -99,15 +95,10 @@ public class UsuarioService : IUsuarioService
 
     }
 
-    public async Task ActualizarPasswordAsync(string? idUsuario, CambiarPasswordDto usuarioRecibido)
+    public async Task ActualizarPasswordAsync(long idUsuario, CambiarPasswordDto usuarioRecibido)
     {
         
-        if (!long.TryParse(idUsuario, out long idConvertido))
-        {
-            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
-        }
-        
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idConvertido);
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
         
         if (usuarioDb == null)
         {
@@ -129,34 +120,29 @@ public class UsuarioService : IUsuarioService
         await _repositorio.ActualizarUsuarioAsync(usuarioDb);
 
     }
-
-    public async Task EliminarCuentaAsync(string? idUsuario)
+    
+    public async Task EliminarCuentaAsync(long idUsuario)
     {
         
-        if (!long.TryParse(idUsuario, out long idConvertido))
-        {
-            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
-        }
-        
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idConvertido);
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
         
         if (usuarioDb == null)
         {
             throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
         }
-
-        await _repositorio.EliminarUsuarioAsync(usuarioDb);
+        
+        usuarioDb.CambiarEstado(false);
+        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
+    }
+    
+    private async Task<Usuario?> ObtenerUsuarioPorIdAsync(long idUsuario)
+    {
+        return await _repositorio.BuscarUsuarioPorId(idUsuario);
     }
 
     private async Task<Usuario?> ObtenerUsuarioPorEmailAsync(string email)
     {
         return await _repositorio.BuscarUsuarioPorEmail(email);
     }
-
-    private async Task<Usuario?> ObtenerUsuarioPorIdAsync(long idUsuario)
-    {
-        return await _repositorio.BuscarUsuarioPorId(idUsuario);
-    }
-
 
 }

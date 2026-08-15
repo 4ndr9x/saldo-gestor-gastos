@@ -9,11 +9,11 @@ namespace GestorGastos.API.Controllers;
 [Authorize]
 [ApiController]
 [Route("api/[controller]")]
-public class CategoriaController : ControllerBase
+public class CategoriasController : ControllerBase
 {
     private readonly ICategoriaService _categoriaService;
 
-    public CategoriaController(ICategoriaService categoriaService)
+    public CategoriasController(ICategoriaService categoriaService)
     {
         _categoriaService = categoriaService;
     }
@@ -21,9 +21,9 @@ public class CategoriaController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CrearCategoria([FromBody] CrearCategoriaDto categoriaRecibida)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        RespuestaCategoriaDto respuestaCategoria = await _categoriaService.CrearCategoriaAsync(idString, categoriaRecibida);
+        RespuestaCategoriaDto respuestaCategoria = await _categoriaService.CrearCategoriaAsync(idUsuario, categoriaRecibida);
 
         return CreatedAtAction(nameof(ObtenerCategoriaPorId), new { idCategoria = respuestaCategoria.Id }, respuestaCategoria);
     }
@@ -31,19 +31,19 @@ public class CategoriaController : ControllerBase
     [HttpGet("{idCategoria:long}")]
     public async Task<IActionResult> ObtenerCategoriaPorId([FromRoute] long idCategoria)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(idCategoria, idString);
+        var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(idCategoria, idUsuario);
 
         return Ok(categoria);
     }
     
-    [HttpGet("mis-categorias")]
+    [HttpGet]
     public async Task<IActionResult> ObtenerMisCategorias()
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        var categorias = await _categoriaService.ObtenerCategoriasAsync(idString);
+        var categorias = await _categoriaService.ObtenerCategoriasAsync(idUsuario);
 
         return Ok(categorias);
     }
@@ -51,9 +51,9 @@ public class CategoriaController : ControllerBase
     [HttpDelete("{idCategoria:long}")]
     public async Task<IActionResult> EliminarCategoria([FromRoute] long idCategoria)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        await _categoriaService.EliminarCategoriaAsync(idCategoria, idString);
+        await _categoriaService.EliminarCategoriaAsync(idCategoria, idUsuario);
 
         return NoContent();
     }
@@ -61,20 +61,25 @@ public class CategoriaController : ControllerBase
     [HttpPut("{idCategoria:long}")]
     public async Task<IActionResult> ActualizarNombreCategoria([FromRoute] long idCategoria, [FromBody] ActualizarCategoriaDto categoriaRecibida)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        await _categoriaService.ActualizarCategoriaAsync(idCategoria, idString, categoriaRecibida);
+        await _categoriaService.ActualizarCategoriaAsync(idCategoria, idUsuario, categoriaRecibida);
 
         return NoContent();
     }
 
-    [HttpPut("{idCategoria:long}/restaurar")]
+    [HttpPatch("{idCategoria:long}/restaurar")]
     public async Task<IActionResult> RestaurarCategoria([FromRoute] long idCategoria)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        await _categoriaService.RestaurarCategoriaAsync(idCategoria, idString);
+        await _categoriaService.RestaurarCategoriaAsync(idCategoria, idUsuario);
 
         return NoContent();
+    }
+    
+    private string? ObtenerIdUsuario()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

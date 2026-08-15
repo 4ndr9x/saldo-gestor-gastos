@@ -21,9 +21,9 @@ public class MetodosPagoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CrearMetodoPago([FromBody] CrearMetodoPagoDto dtoRecibido)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        RespuestaMetodoPagoDto respuesta = await _metodoPagoService.CrearMetodoPagoAsync(idString, dtoRecibido);
+        RespuestaMetodoPagoDto respuesta = await _metodoPagoService.CrearMetodoPagoAsync(idUsuario, dtoRecibido);
         
         return CreatedAtAction(nameof(ObtenerMetodoPagoPorId), new { idMetodoPago = respuesta.Id }, respuesta);
     }
@@ -31,19 +31,19 @@ public class MetodosPagoController : ControllerBase
     [HttpGet("{idMetodoPago:long}")]
     public async Task<IActionResult> ObtenerMetodoPagoPorId([FromRoute] long idMetodoPago)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        var metodoPago = await _metodoPagoService.ObtenerMetodoPagoPorIdAsync(idMetodoPago, idString);
+        var metodoPago = await _metodoPagoService.ObtenerMetodoPagoPorIdAsync(idMetodoPago, idUsuario);
 
         return Ok(metodoPago);
     }
     
-    [HttpGet("mis-metodos")]
+    [HttpGet]
     public async Task<IActionResult> ObtenerMisMetodosPago()
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        var metodos = await _metodoPagoService.ObtenerMetodosPagoAsync(idString);
+        var metodos = await _metodoPagoService.ObtenerMetodosPagoAsync(idUsuario);
 
         return Ok(metodos);
     }
@@ -51,9 +51,9 @@ public class MetodosPagoController : ControllerBase
     [HttpDelete("{idMetodoPago:long}")]
     public async Task<IActionResult> EliminarMetodoPago([FromRoute] long idMetodoPago)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        await _metodoPagoService.EliminarMetodoPagoAsync(idMetodoPago, idString);
+        await _metodoPagoService.EliminarMetodoPagoAsync(idMetodoPago, idUsuario);
 
         return NoContent();
     }
@@ -61,20 +61,25 @@ public class MetodosPagoController : ControllerBase
     [HttpPut("{idMetodoPago:long}")]
     public async Task<IActionResult> ActualizarNombreMetodoPago([FromRoute] long idMetodoPago, [FromBody] ActualizarMetodoPagoDto dtoRecibido)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        await _metodoPagoService.ActualizarMetodoPagoAsync(idMetodoPago, idString, dtoRecibido);
+        await _metodoPagoService.ActualizarMetodoPagoAsync(idMetodoPago, idUsuario, dtoRecibido);
 
         return NoContent();
     }
 
-    [HttpPut("{idMetodoPago:long}/restaurar")]
+    [HttpPatch("{idMetodoPago:long}/restaurar")]
     public async Task<IActionResult> RestaurarMetodoPago([FromRoute] long idMetodoPago)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        string? idUsuario = ObtenerIdUsuario();
 
-        await _metodoPagoService.RestaurarMetodoPagoAsync(idMetodoPago, idString);
+        await _metodoPagoService.RestaurarMetodoPagoAsync(idMetodoPago, idUsuario);
 
         return NoContent();
+    }
+    
+    private string? ObtenerIdUsuario()
+    {
+        return User.FindFirstValue(ClaimTypes.NameIdentifier);
     }
 }

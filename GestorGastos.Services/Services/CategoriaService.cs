@@ -130,7 +130,7 @@ public class CategoriaService : ICategoriaService
     {
         if (!long.TryParse(idUsuario, out long idConvertido))
         {
-            throw new SinAutorizacionExcepcion("Credenciales invalidas.");
+            throw new SinAutorizacionExcepcion("Credenciales inválidas.");
         }
         return idConvertido;
     }

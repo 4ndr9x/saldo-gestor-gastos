@@ -2,7 +2,7 @@ namespace GestorGastos.Services.DTOs.DTOs_de_Usuario;
 
 public class RespuestaAuthDto
 {
-    public string Token { get; set; }
-    public string NombreUsuario { get; set; }
-    public string Email { get; set; }
+    public string Token { get; set; } = string.Empty;
+    public string NombreUsuario { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
 }

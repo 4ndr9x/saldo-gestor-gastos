@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GestorGastos.Domain.Exceptions;
 using GestorGastos.Services.DTOs.DTOs_de_Usuario;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -20,7 +21,7 @@ public class UsuarioController : ControllerBase
     public async Task<IActionResult> RegistrarUsuario([FromBody] RegistroDto usuarioRecibido)
     {
         long idUsuarioRegistrado = await _usuarioService.RegistrarUsuarioAsync(usuarioRecibido);
-        return CreatedAtAction(nameof(ObtenerUsuarioPorId), new {id = idUsuarioRegistrado}, new {mensaje = "Usuario registrado"});
+        return Created(string.Empty, new { mensaje = "Usuario registrado exitosamente.", id = idUsuarioRegistrado });
     }
 
     [HttpPost("login")]
@@ -34,60 +35,58 @@ public class UsuarioController : ControllerBase
     [HttpPut("perfil")]
     public async Task<IActionResult> ActualizarNombrePerfil([FromBody] ActualizarPerfilDto usuarioRecibido)
     {
+        long idUsuario = ValidarUsuario();
 
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        await _usuarioService.ActualizarPerfilAsync(idString, usuarioRecibido);
-        return Ok(new { mensaje = "Tu perfil a sido actualizado correctamente." });
-
+        await _usuarioService.ActualizarPerfilAsync(idUsuario, usuarioRecibido);
+        return Ok(new { mensaje = "Tu perfil ha sido actualizado correctamente." });
     }
 
     [Authorize]
     [HttpPut("cambiar-password")]
     public async Task<IActionResult> ActualizarPassword([FromBody] CambiarPasswordDto usuarioRecibido)
     {
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        long idUsuario = ValidarUsuario();
 
-        await _usuarioService.ActualizarPasswordAsync(idString, usuarioRecibido);
-        return Ok(new { mensaje = "Tu contraseña a sido actualizada correctamente." });
-    }
-
-    [HttpGet("{id:long}")]
-    public IActionResult ObtenerUsuarioPorId([FromRoute] long id)
-    {
-        return Ok(new { id = id, mensaje = "Ya se puede implementar la ruta del usuario" });
-        // TODO: MEJORAR MAS ADELANTE
+        await _usuarioService.ActualizarPasswordAsync(idUsuario, usuarioRecibido);
+        return Ok(new { mensaje = "Tu contraseña ha sido actualizada correctamente." });
     }
 
     [Authorize]
     [HttpDelete("cuenta")]
     public async Task<IActionResult> EliminarUsuario()
     {
-        
-        string? idString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        long idUsuario = ValidarUsuario();
 
-        await _usuarioService.EliminarCuentaAsync(idString);
+        await _usuarioService.EliminarCuentaAsync(idUsuario);
         return NoContent();
-
     }
     
-    //TODO: ELIMINAR ESTE METODO DE PRUEBA
     [Authorize]
     [HttpGet("perfil")]
-    public IActionResult ObtenerPerfil()
+    public IActionResult ObtenerMiPerfil()
     {
-    
-        string? idUsuario = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        string? correo = User.FindFirst(ClaimTypes.Email)?.Value;
-        string? nombre = User.FindFirst(ClaimTypes.Name)?.Value;
+        long idUsuario = ValidarUsuario();
+        string? correo = User.FindFirstValue(ClaimTypes.Email); 
+        string? nombre = User.FindFirstValue(ClaimTypes.Name);
+        
+        RespuestaPerfilDto respuestaPerfil = new RespuestaPerfilDto();
+        respuestaPerfil.Id = idUsuario;
+        respuestaPerfil.Email = correo;
+        respuestaPerfil.Nombre = nombre;
 
-        return Ok(new 
-        { 
-            Mensaje = "¡Pasaste la seguridad con éxito!", 
-            UsuarioId = idUsuario, 
-            Nombre = nombre,
-            Email = correo 
-        });
+        return Ok(respuestaPerfil);
+    }
+    
+    private long ValidarUsuario()
+    {
+        string? idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (!long.TryParse(idString, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("Credenciales inválidas.");
+        }
+
+        return idConvertido;
     }
 
 }

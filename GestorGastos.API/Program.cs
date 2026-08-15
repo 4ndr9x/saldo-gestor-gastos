@@ -19,10 +19,12 @@ builder.Services.AddSqlServer<DbSistemaGastosContext>(builder.Configuration.GetC
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
+builder.Services.AddScoped<IGastoRepository, GastoRepository>();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IMetodoPagoService, MetodoPagoService>();
+builder.Services.AddScoped<IGastoService, GastoService>();
 
 // == 
 

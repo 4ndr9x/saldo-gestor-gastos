@@ -7,6 +7,5 @@ public interface IUsuarioRepository
     Task<Usuario?> BuscarUsuarioPorEmail(string email);
     Task RegistrarUsuarioAsync(Usuario usuarioRecibido);
     Task<Usuario?> BuscarUsuarioPorId(long idUsuario);
-    Task ActualizarUsuarioAsync(Usuario usuario);
-    Task EliminarUsuarioAsync(Usuario usuarioRecibido);
+    Task ActualizarUsuarioAsync(Usuario usuarioRecibido);
 }
