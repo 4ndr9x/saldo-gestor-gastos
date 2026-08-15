@@ -9,6 +9,7 @@ public class DbSistemaGastosContext : DbContext
     public DbSet<Categoria> Categorias { get; set; }
     public DbSet<Gasto> Gastos { get; set; }
     public DbSet<MetodoPago> MetodosPago { get; set; }
+    public DbSet<Presupuesto> Presupuestos { get; set; }
     
     public DbSistemaGastosContext(DbContextOptions<DbSistemaGastosContext> db) : base(db)
     {
@@ -24,6 +25,11 @@ public class DbSistemaGastosContext : DbContext
         modelBuilder.Entity<Gasto>()
             .Property(g => g.Monto)
             .HasPrecision(18, 2); 
+        
+        modelBuilder.Entity<Gasto>()
+            .Property(g => g.Descripcion)
+            .IsRequired()
+            .HasMaxLength(100);
         
         modelBuilder.Entity<Gasto>()
             .HasOne(g => g.Categoria)
@@ -69,6 +75,28 @@ public class DbSistemaGastosContext : DbContext
                 .WithMany(u => u.MetodosPago)
                 .HasForeignKey(m => m.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict); 
+        });
+        
+        // Modelado de los presupuestos
+        modelBuilder.Entity<Presupuesto>()
+            .Property(p => p.MontoMaximo)
+            .HasPrecision(18, 2);
+        
+        modelBuilder.Entity<Presupuesto>(entidad =>
+        {
+            entidad.ToTable("Presupuestos");
+
+            entidad.HasKey(p => p.Id);
+
+            entidad.HasOne(p => p.Usuario)
+                .WithMany()
+                .HasForeignKey(p => p.UsuarioId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entidad.HasOne(p => p.Categoria)
+                .WithMany()
+                .HasForeignKey(p => p.CategoriaId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

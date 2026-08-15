@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using GestorGastos.Domain.Exceptions;
+using GestorGastos.Services.DTOs.DTOs_de_Exportacion;
 using GestorGastos.Services.DTOs.DTOs_de_Gasto;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +23,7 @@ public class GastosController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CrearGasto([FromBody] CrearGastoDto gastoRecibido)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
         RespuestaGastoDto respuesta = await _gastoService.CrearGastoAsync(idUsuario, gastoRecibido);
         
         return CreatedAtAction(nameof(ObtenerGastoPorId), new { idGasto = respuesta.Id }, respuesta);
@@ -30,16 +32,16 @@ public class GastosController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> ObtenerTodosLosGastos()
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
         IEnumerable<RespuestaGastoDto> gastos = await _gastoService.ObtenerTodosGastosAsync(idUsuario);
         
-        return Ok(gastos); // Retorna 200 OK con la lista
+        return Ok(gastos);
     }
 
     [HttpGet("{idGasto:long}")]
     public async Task<IActionResult> ObtenerGastoPorId([FromRoute] long idGasto)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
         RespuestaGastoDto gasto = await _gastoService.ObtenerGastoPorIdAsync(idGasto, idUsuario);
         
         return Ok(gasto);
@@ -48,7 +50,7 @@ public class GastosController : ControllerBase
     [HttpPut("{idGasto:long}")]
     public async Task<IActionResult> ActualizarGasto([FromRoute] long idGasto, [FromBody] ActualizarGastoDto gastoRecibido)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
         await _gastoService.ActualizarGastoAsync(idGasto, idUsuario, gastoRecibido);
         
         return NoContent();
@@ -57,7 +59,7 @@ public class GastosController : ControllerBase
     [HttpDelete("{idGasto:long}")]
     public async Task<IActionResult> EliminarGasto([FromRoute] long idGasto)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
         await _gastoService.EliminarGastoAsync(idGasto, idUsuario);
         
         return NoContent();
@@ -66,14 +68,61 @@ public class GastosController : ControllerBase
     [HttpPatch("{idGasto:long}/restaurar")]
     public async Task<IActionResult> RestaurarGasto([FromRoute] long idGasto)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
         await _gastoService.RestaurarGastoAsync(idGasto, idUsuario);
         
         return NoContent();
     }
     
-    private string? ObtenerIdUsuario()
+    [HttpPost("importar")]
+    public async Task<IActionResult> ImportarDesdeExcel(IFormFile? archivoExcel)
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        long idUsuario = ObtenerIdUsuario();
+        IFormFile archivoValidado = ValidarExcelEnviado(archivoExcel);
+        
+        using Stream stream = archivoValidado.OpenReadStream();
+        ResultadoImportacionDto resultado = await _gastoService.ImportarGastosDesdeExcelAsync(idUsuario, stream);
+        
+        return Ok(resultado);
+    }
+    
+    // METODOS PRIVADOS PARA VALIDAR ANTES DE ENVIAR DATOS A LOS SERVICIOS.
+    private long ObtenerIdUsuario()
+    {
+        string? idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(idString) || !long.TryParse(idString, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("El token no contiene un identificador válido.");
+        }
+
+        return idConvertido;
+    }
+
+    private IFormFile ValidarExcelEnviado(IFormFile? archivo)
+    {
+        List<string> detalles = new List<string>();
+        if (archivo == null)
+        {
+            detalles.Add("No se envió ningún archivo.");
+            throw new DatosErroneosExcepcion("Ocurrio un error con el archivo enviado.", detalles);
+        }
+        
+        if (Path.GetExtension(archivo.FileName).ToLower() != ".xlsx")
+        {
+            detalles.Add("El formato del archivo no es válido. Solo se aceptan archivos .xlsx");
+        }
+
+        if (archivo.Length == 0)
+        {
+            detalles.Add(" El archivo enviado está vacío.");
+        }
+
+        if (detalles.Any())
+        {
+            throw new DatosErroneosExcepcion("Ocurrio un error con el archivo enviado.", detalles);
+        }
+        
+        return archivo;
     }
 }

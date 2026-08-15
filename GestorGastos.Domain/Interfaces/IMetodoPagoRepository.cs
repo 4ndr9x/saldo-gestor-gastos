@@ -5,7 +5,7 @@ namespace GestorGastos.Domain.Interfaces;
 public interface IMetodoPagoRepository
 {
     Task AgregarMetodoPagoAsync(MetodoPago metodoPago);
-    Task<MetodoPago?> BuscarPorIdAsync(long idMetodoPago);
+    Task<MetodoPago?> BuscarPorIdAsync(long idMetodoPago, long idUsuario);
     Task<IEnumerable<MetodoPago>> ObtenerPorUsuarioAsync(long idUsuario);
     Task ActualizarMetodoPagoAsync(MetodoPago metodoPago);
     

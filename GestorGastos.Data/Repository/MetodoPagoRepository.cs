@@ -20,9 +20,13 @@ public class MetodoPagoRepository : IMetodoPagoRepository
         await _contexto.SaveChangesAsync();
     }
 
-    public async Task<MetodoPago?> BuscarPorIdAsync(long idMetodoPago)
+    public async Task<MetodoPago?> BuscarPorIdAsync(long idMetodoPago, long idUsuario)
     {
-        return await _contexto.MetodosPago.FindAsync(idMetodoPago);
+        return await _contexto.MetodosPago
+            .FirstOrDefaultAsync(m =>
+                m.UsuarioId == idUsuario &&
+                m.Id == idMetodoPago &&
+                m.Activo);
     }
 
     public async Task<IEnumerable<MetodoPago>> ObtenerPorUsuarioAsync(long idUsuario)

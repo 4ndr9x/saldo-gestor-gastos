@@ -8,6 +8,7 @@ using GestorGastos.Services.Interfaces;
 using GestorGastos.Services.Services;
 using Microsoft.IdentityModel.Tokens;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
@@ -20,11 +21,13 @@ builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IMetodoPagoRepository, MetodoPagoRepository>();
 builder.Services.AddScoped<IGastoRepository, GastoRepository>();
+builder.Services.AddScoped<IPresupuestoRepository, PresupuestoRepository>();
 
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IMetodoPagoService, MetodoPagoService>();
 builder.Services.AddScoped<IGastoService, GastoService>();
+builder.Services.AddScoped<IPresupuestoService, PresupuestoService>();
 
 // == 
 
@@ -72,3 +75,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+// TODO: MODIFICAR LA OBTENCION DEL ID DE USUARIO EN TODOS LOS DEMAS SERVICIOS Y CONTROLADORES

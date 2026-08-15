@@ -20,12 +20,21 @@ public class GastoRepository : IGastoRepository
         await _contexto.SaveChangesAsync();
     }
 
-    public async Task<Gasto?> BuscarPorIdAsync(long idGasto)
+    public async Task AgregarRangoDeGastosAsync(IEnumerable<Gasto> gastosRecibidos)
+    {
+        await _contexto.Gastos.AddRangeAsync(gastosRecibidos);
+        await _contexto.SaveChangesAsync();
+    }
+
+    public async Task<Gasto?> BuscarPorIdAsync(long idGasto, long idUsuario)
     {
         return await _contexto.Gastos
             .Include(g => g.Categoria)
             .Include(g => g.MetodoPago)
-            .FirstOrDefaultAsync(g => g.Id == idGasto);
+            .FirstOrDefaultAsync(g =>
+                g.Id == idGasto &&
+                g.UsuarioId == idUsuario &&
+                g.Activo);
     }
 
     public async Task<IEnumerable<Gasto>> ObtenerPorUsuarioAsync(long idUsuario)
@@ -36,10 +45,22 @@ public class GastoRepository : IGastoRepository
             .Include(g => g.MetodoPago)
             .ToListAsync();
     }
+    public async Task<decimal> ObtenerTotalGastadoPorCategoriaYMesAsync(long idUsuario, long idCategoria, int month, int year)
+    {
+        return await _contexto.Gastos
+            .Where(g =>
+                g.UsuarioId == idUsuario &&
+                g.CategoriaId == idCategoria &&
+                g.Fecha.Month == month &&
+                g.Fecha.Year == year &&
+                g.Activo)
+            .SumAsync(g => g.Monto);
+    }
 
     public async Task ActualizarGastoAsync(Gasto gastoRecibido)
     {
         _contexto.Gastos.Update(gastoRecibido);
         await _contexto.SaveChangesAsync();
     }
+    
 }

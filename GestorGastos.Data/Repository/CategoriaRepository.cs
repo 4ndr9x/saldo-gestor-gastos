@@ -20,9 +20,13 @@ public class CategoriaRepository : ICategoriaRepository
         await _contexto.SaveChangesAsync();
     }
 
-    public async Task<Categoria?> BuscarPorIdAsync(long idCategoria)
+    public async Task<Categoria?> BuscarPorIdAsync(long idCategoria, long idUsuario)
     {
-        return await _contexto.Categorias.FindAsync(idCategoria);
+        return await _contexto.Categorias
+            .FirstOrDefaultAsync(c =>
+            c.UsuarioId == idUsuario &&
+            c.Id == idCategoria &&
+            c.Activo);;
     }
 
     public async Task<IEnumerable<Categoria>> ObtenerPorUsuarioAsync(long idUsuario)

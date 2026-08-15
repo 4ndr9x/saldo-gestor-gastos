@@ -55,9 +55,9 @@ public class MetodoPagoService : IMetodoPagoService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
         
-        if (metodo == null || metodo.UsuarioId != idConvertido || !metodo.Activo)
+        if (metodo == null)
         {
             throw new NoEncontradoExcepcion("El método de pago que estás intentando buscar no existe.");
         }
@@ -73,19 +73,13 @@ public class MetodoPagoService : IMetodoPagoService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
         
-        if (metodo == null || metodo.UsuarioId != idConvertido)
+        if (metodo == null)
         { 
             throw new NoEncontradoExcepcion("El método de pago que intentas actualizar no existe.");
         }
-
-        if (!metodo.Activo)
-        {
-            throw new ConflictoExcepcion("El método de pago que intentas actualizar ya estaba desactivado.");
-        }
         
-        // Opcional: Validar que el nuevo nombre no choque con otro método existente
         bool nombreEnUso = await _repositorio.ExisteMetodoPagoPorNombreAsync(idConvertido, metodoPagoRecibido.Nombre);
         if (nombreEnUso && metodo.Nombre != metodoPagoRecibido.Nombre)
         {
@@ -100,16 +94,11 @@ public class MetodoPagoService : IMetodoPagoService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
         
-        if (metodo == null || metodo.UsuarioId != idConvertido)
+        if (metodo == null)
         { 
             throw new NoEncontradoExcepcion("El método de pago que intentas eliminar no existe.");
-        }
-
-        if (!metodo.Activo)
-        {
-            throw new ConflictoExcepcion("El método de pago ya estaba desactivado.");
         }
         
         metodo.CambiarEstado(false);
@@ -120,16 +109,11 @@ public class MetodoPagoService : IMetodoPagoService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
         
-        if (metodo == null || metodo.UsuarioId != idConvertido)
+        if (metodo == null)
         { 
             throw new NoEncontradoExcepcion("El método de pago que intentas reactivar no existe.");
-        }
-        
-        if (metodo.Activo)
-        {
-            throw new ConflictoExcepcion("El método de pago ya estaba activado.");
         }
         
         metodo.CambiarEstado(true);

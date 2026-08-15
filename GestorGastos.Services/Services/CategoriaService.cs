@@ -48,9 +48,9 @@ public class CategoriaService : ICategoriaService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
         
-        if (categoria == null || categoria.UsuarioId != idConvertido || !categoria.Activo)
+        if (categoria == null)
         {
             throw new NoEncontradoExcepcion("La categoria que estas intentando buscar no existe.");
         }
@@ -66,16 +66,11 @@ public class CategoriaService : ICategoriaService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
         
-        if (categoria == null || categoria.UsuarioId != idConvertido)
+        if (categoria == null)
         { 
             throw new NoEncontradoExcepcion("La categoría que intentas eliminar no existe.");
-        }
-
-        if (!categoria.Activo)
-        {
-            throw new ConflictoExcepcion("La categoria ya estaba desactivada.");
         }
         
         categoria.CambiarEstado(false);
@@ -87,16 +82,11 @@ public class CategoriaService : ICategoriaService
     {
         long idConvertido = ValidarUsuario(idUsuario);
         
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
         
-        if (categoria == null || categoria.UsuarioId != idConvertido)
+        if (categoria == null)
         { 
             throw new NoEncontradoExcepcion("La categoría que intentas reactivar no existe.");
-        }
-        
-        if (categoria.Activo)
-        {
-            throw new ConflictoExcepcion("La categoria ya estaba activada.");
         }
         
         categoria.CambiarEstado(true);
@@ -109,16 +99,11 @@ public class CategoriaService : ICategoriaService
 
         long idConvertido = ValidarUsuario(idUsuario);
         
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
         
-        if (categoria == null || categoria.UsuarioId != idConvertido)
+        if (categoria == null)
         { 
             throw new NoEncontradoExcepcion("La categoría que intentas actualizar no existe.");
-        }
-
-        if (!categoria.Activo)
-        {
-            throw new ConflictoExcepcion("La categoría que intentas actualizar esta inactiva.");
         }
         
         categoria.ActualizarNombre(categoriaRecibida.Nombre);
