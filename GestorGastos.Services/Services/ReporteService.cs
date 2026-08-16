@@ -1,3 +1,4 @@
+using GestorGastos.Domain.Exceptions;
 using GestorGastos.Domain.Interfaces;
 using GestorGastos.Services.DTOs.DTOs_de_Reporte;
 using GestorGastos.Services.Interfaces;
@@ -7,14 +8,23 @@ namespace GestorGastos.Services.Services;
 public class ReporteService : IReporteService
 {
     private readonly IGastoRepository _gastoRepositorio;
+    private readonly IUsuarioRepository _usuarioRepositorio;
 
-    public ReporteService(IGastoRepository gastoRepositorio)
+    public ReporteService(IGastoRepository gastoRepositorio, IUsuarioRepository usuarioRepositorio)
     {
         _gastoRepositorio = gastoRepositorio;
+        _usuarioRepositorio = usuarioRepositorio;
     }
     
     public async Task<ReporteMensualDto> GenerarReporteMensualAsync(long idUsuario, int month, int year)
     {
+        var usuario = await _usuarioRepositorio.BuscarUsuarioPorIdAsync(idUsuario); 
+
+        if (usuario == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que has intentado buscar no existe.");
+        }
+        
         DateTime fechaActual = new DateTime(year, month, 1);
         DateTime fechaAnterior = fechaActual.AddMonths(-1);
         int monthAnterior = fechaAnterior.Month;
@@ -55,7 +65,10 @@ public class ReporteService : IReporteService
             TotalMesAnterior = totalMesAnterior,
             Diferencia = diferencia,
             MensajeComparacion = mensaje,
-            TopCategorias = topCategorias
+            TopCategorias = topCategorias,
+            
+            NombreUsuario = usuario.Nombre,
+            Moneda = usuario.MonedaUsada
         };
     }
 }

@@ -1,7 +1,6 @@
 using GestorGastos.Domain.Exceptions;
 using GestorGastos.Domain.Interfaces;
 using GestorGastos.Domain.Models;
-using GestorGastos.Services.DTOs;
 using GestorGastos.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using System.IdentityModel.Tokens.Jwt;
@@ -14,29 +13,31 @@ namespace GestorGastos.Services.Services;
 
 public class UsuarioService : IUsuarioService
 {
-    private readonly IUsuarioRepository _repositorio;
+    private readonly IUsuarioRepository _usuarioRepositorio;
+    private readonly IGastoRepository _gastoRepositorio;
+    private readonly ITasaCambioService _tasaCambioService;
+    private readonly IPresupuestoRepository _presupuestoRepositorio;
     private readonly IConfiguration _configuracion;
 
-    public UsuarioService(IUsuarioRepository repositorio, IConfiguration configuracion)
+    public UsuarioService(IUsuarioRepository usuarioRepositorio, IGastoRepository gastoRepositorio,
+        ITasaCambioService tasaCambioService, IPresupuestoRepository presupuestoRepositorio, IConfiguration configuracion)
     {
-        _repositorio = repositorio;
+        _usuarioRepositorio = usuarioRepositorio;
+        _gastoRepositorio = gastoRepositorio;
+        _tasaCambioService = tasaCambioService;
+        _presupuestoRepositorio = presupuestoRepositorio;
         _configuracion = configuracion;
     }
     
     public async Task<long> RegistrarUsuarioAsync(RegistroDto usuarioRecibido)
     {
-        Usuario? usuarioDb = await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
-
-        if (usuarioDb != null)
-        {
-            throw new ConflictoExcepcion("El email introducido ya esta siendo usado.");
-        }
+        await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
 
         string hashPassword = BCrypt.Net.BCrypt.HashPassword(usuarioRecibido.Password);
 
-        Usuario usuarioParaRegistrar = new Usuario(usuarioRecibido.Nombre, usuarioRecibido.Email, hashPassword);
+        Usuario usuarioParaRegistrar = new Usuario(usuarioRecibido.Nombre, usuarioRecibido.Email, hashPassword, usuarioRecibido.MonedaUsada.ToUpper());
 
-        await _repositorio.RegistrarUsuarioAsync(usuarioParaRegistrar);
+        await _usuarioRepositorio.RegistrarUsuarioAsync(usuarioParaRegistrar);
 
         return usuarioParaRegistrar.Id;
 
@@ -44,12 +45,7 @@ public class UsuarioService : IUsuarioService
 
     public async Task<RespuestaAuthDto> AutenticarUsuarioAsync(InicioSesionDto usuarioRecibido)
     {
-        Usuario? usuarioDb = await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
-
-        if (usuarioDb == null)
-        {
-            throw new CredencialesInvalidasExcepcion("Credenciales invalidas.");
-        }
+        Usuario usuarioDb = await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
 
         bool esValido = BCrypt.Net.BCrypt.Verify(usuarioRecibido.Password, usuarioDb.PasswordHash);
 
@@ -80,43 +76,60 @@ public class UsuarioService : IUsuarioService
         return new RespuestaAuthDto {Token = tokenString, NombreUsuario = usuarioDb.Nombre, Email = usuarioDb.Email};
     }
 
-    public async Task ActualizarMonedaUsadaAsync(long idUsuario, ActualizarMonedaUsadaDto usuarioRecibido)
+    public async Task ActualizarMonedaUsadaAsync(long idUsuario, ActualizarMonedaUsadaDto monedaRecibida)
     {
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
+        Usuario usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
+        string nuevaMoneda = monedaRecibida.MonedaUsada.Trim().ToUpper();
         
-        if (usuarioDb == null)
+        string monedaAnterior = usuarioDb.MonedaUsada;
+        
+        if (monedaAnterior == nuevaMoneda)
         {
-            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+            throw new ConflictoExcepcion("La moneda a la que intentaste cambiar es la misma ya asignada.");
         }
         
-        usuarioDb.CambiarMonedaUsada(usuarioRecibido.MonedaUsada);
-        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
+        var gastos = await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
+        var cacheTasas = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var gasto in gastos)
+        {
+            if (!cacheTasas.TryGetValue(gasto.Moneda, out decimal tasaGastoANueva))
+            {
+                tasaGastoANueva = await _tasaCambioService.ObtenerTasaCambioAsync(gasto.Moneda, nuevaMoneda);
+                cacheTasas[gasto.Moneda] = tasaGastoANueva;
+            }
+            
+            gasto.RecalcularConversionMoneda(tasaGastoANueva);
+    
+            await _gastoRepositorio.ActualizarGastoAsync(gasto);
+        }
+        
+        var presupuestos = await _presupuestoRepositorio.ObtenerTodosPorIdAsync(idUsuario);
+        
+        decimal tasaViejaANueva = await _tasaCambioService.ObtenerTasaCambioAsync(monedaAnterior, nuevaMoneda);
+
+        foreach (var presupuesto in presupuestos)
+        {
+            presupuesto.CambiarMontoMaximo(presupuesto.MontoMaximo * tasaViejaANueva);
+            await _presupuestoRepositorio.ActualizarPresupuestoAsync(presupuesto);
+        }
+        
+        usuarioDb.CambiarMonedaUsada(nuevaMoneda);
+        await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
     }
 
     public async Task ActualizarPerfilAsync(long idUsuario, ActualizarPerfilDto usuarioRecibido)
     {
-        
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
-
-        if (usuarioDb == null)
-        {
-            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
-        }
+        Usuario usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
 
         usuarioDb.CambiarNombre(usuarioRecibido.Nombre);
-        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
-
+        await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
     }
 
     public async Task ActualizarPasswordAsync(long idUsuario, CambiarPasswordDto usuarioRecibido)
     {
         
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
-        
-        if (usuarioDb == null)
-        {
-            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
-        }
+        Usuario usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
 
         bool passwordCorrecta = BCrypt.Net.BCrypt.Verify(usuarioRecibido.PasswordActual, usuarioDb.PasswordHash);
 
@@ -130,32 +143,40 @@ public class UsuarioService : IUsuarioService
         
         usuarioDb.CambiarPasswordHash(passwordNuevoEncriptado);
 
-        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
+        await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
 
     }
     
     public async Task EliminarCuentaAsync(long idUsuario)
     {
+        Usuario usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
         
-        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
+        usuarioDb.CambiarEstado(false);
+        await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
+    }
+    
+    private async Task<Usuario> ObtenerUsuarioPorIdAsync(long idUsuario)
+    {
+        Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorIdAsync(idUsuario);
         
         if (usuarioDb == null)
         {
             throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
         }
-        
-        usuarioDb.CambiarEstado(false);
-        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
-    }
-    
-    private async Task<Usuario?> ObtenerUsuarioPorIdAsync(long idUsuario)
-    {
-        return await _repositorio.BuscarUsuarioPorId(idUsuario);
+
+        return usuarioDb;
     }
 
-    private async Task<Usuario?> ObtenerUsuarioPorEmailAsync(string email)
+    private async Task<Usuario> ObtenerUsuarioPorEmailAsync(string email)
     {
-        return await _repositorio.BuscarUsuarioPorEmail(email);
+        Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorEmailAsync(email);
+        
+        if (usuarioDb == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
+
+        return usuarioDb;
     }
 
 }

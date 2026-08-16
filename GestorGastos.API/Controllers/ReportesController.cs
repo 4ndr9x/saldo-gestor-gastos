@@ -36,12 +36,12 @@ public class ReportesController : ControllerBase
     [HttpGet("mensual/exportar/txt")]
     public async Task<IActionResult> ExportarTxt([FromQuery] int? month, [FromQuery] int? year)
     {
-        var (monthValido, yearValido) = ValidarFecha(month, year);
         long idUsuario = ObtenerIdUsuario();
+        var (monthValido, yearValido) = ValidarFecha(month, year);
 
-        var reporteDto = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
+        var reporteRecibido = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
     
-        var archivoBytes = _exportacionService.GenerarReporteTxt(reporteDto);
+        var archivoBytes = _exportacionService.GenerarReporteTxt(reporteRecibido);
 
         return File(archivoBytes, "text/plain", $"Reporte_gastos_{monthValido}_{yearValido}.txt");
     }
@@ -49,12 +49,12 @@ public class ReportesController : ControllerBase
     [HttpGet("mensual/exportar/json")]
     public async Task<IActionResult> ExportarJson([FromQuery] int? month, [FromQuery] int? year)
     {
-        var (mesValido, anioValido) = ValidarFecha(month, year);
         long idUsuario = ObtenerIdUsuario();
+        var (mesValido, anioValido) = ValidarFecha(month, year);
         
-        var reporteDto = await _reporteService.GenerarReporteMensualAsync(idUsuario, mesValido, anioValido);
+        var reporteRecibido = await _reporteService.GenerarReporteMensualAsync(idUsuario, mesValido, anioValido);
         
-        var archivoBytes = _exportacionService.GenerarReporteJson(reporteDto);
+        var archivoBytes = _exportacionService.GenerarReporteJson(reporteRecibido);
 
         return File(archivoBytes, "application/json", $"Reporte_{mesValido}_{anioValido}.json");
     }
@@ -62,12 +62,12 @@ public class ReportesController : ControllerBase
     [HttpGet("mensual/exportar/excel")]
     public async Task<IActionResult> ExportarExcel([FromQuery] int? month, [FromQuery] int? year)
     {
-        var (monthValido, yearValido) = ValidarFecha(month, year);
         long idUsuario = ObtenerIdUsuario();
+        var (monthValido, yearValido) = ValidarFecha(month, year);
         
-        var reporteDto = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
+        var reporteRecibido = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
         
-        var archivoBytes = _exportacionService.GenerarReporteExcel(reporteDto);
+        var archivoBytes = _exportacionService.GenerarReporteExcel(reporteRecibido);
         
         return File(
             archivoBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Reporte_gastos_{monthValido}_{yearValido}.xlsx");

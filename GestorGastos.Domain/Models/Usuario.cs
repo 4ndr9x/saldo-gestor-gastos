@@ -13,11 +13,12 @@ public class Usuario
     
     protected Usuario() { }
 
-    public Usuario(string nombre, string email, string passwordHash)
+    public Usuario(string nombre, string email, string passwordHash, string monedaUsada)
     {
         Nombre = nombre;
         Email = email;
         PasswordHash = passwordHash;
+        MonedaUsada = monedaUsada;
     }
 
     public void CambiarNombre(string nuevoNombre)

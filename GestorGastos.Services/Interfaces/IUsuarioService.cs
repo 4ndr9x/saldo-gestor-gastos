@@ -9,7 +9,7 @@ public interface IUsuarioService
     Task<long> RegistrarUsuarioAsync(RegistroDto usuarioRecibido);
     Task<RespuestaAuthDto> AutenticarUsuarioAsync(InicioSesionDto usuarioRecibido);
     Task ActualizarMonedaUsadaAsync(long idUsuario, ActualizarMonedaUsadaDto monedaUsada);
-    Task ActualizarPerfilAsync(long idUsuario, ActualizarPerfilDto usuarioRecibido);
+    Task ActualizarPerfilAsync(long idUsuario, ActualizarPerfilDto monedaRecibida);
     Task ActualizarPasswordAsync(long idUsuario, CambiarPasswordDto usuarioRecibido);
     Task EliminarCuentaAsync(long idUsuario);
 }

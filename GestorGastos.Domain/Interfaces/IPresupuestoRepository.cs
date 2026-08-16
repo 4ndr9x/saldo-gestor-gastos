@@ -9,4 +9,5 @@ public interface IPresupuestoRepository
     Task<Presupuesto?> BuscarPorIdAsync(long idPresupuesto, long idUsuario);
     Task<Presupuesto?> ObtenerPresupuestoPorMesYCategoriaAsync(long idUsuario, long idCategoria, int month, int year);
     Task<IEnumerable<Presupuesto>> ObtenerPresupuestosDelMesAsync(long idUsuario, int month, int year);
+    Task<IEnumerable<Presupuesto>> ObtenerTodosPorIdAsync(long idUsuario);
 }

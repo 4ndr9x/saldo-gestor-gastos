@@ -14,12 +14,12 @@ public class UsuarioRepository : IUsuarioRepository
         _contexto = contexto;
     }
 
-    public async Task<Usuario?> BuscarUsuarioPorEmail(string email)
+    public async Task<Usuario?> BuscarUsuarioPorEmailAsync(string email)
     {
         return _contexto.Usuarios.FirstOrDefault(u => u.Email == email);
     }
 
-    public async Task<Usuario?> BuscarUsuarioPorId(long idUsuario)
+    public async Task<Usuario?> BuscarUsuarioPorIdAsync(long idUsuario)
     {
         return _contexto.Usuarios.FirstOrDefault(u => u.Id == idUsuario);
     }

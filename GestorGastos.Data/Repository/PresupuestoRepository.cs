@@ -55,4 +55,13 @@ public class PresupuestoRepository : IPresupuestoRepository
                 p.Activo)
             .ToListAsync();
     }
+
+    public async Task<IEnumerable<Presupuesto>> ObtenerTodosPorIdAsync(long idUsuario)
+    {
+        return await _contexto.Presupuestos
+            .Where(p =>
+                p.UsuarioId == idUsuario &&
+                p.Activo)
+            .ToListAsync();
+    }
 }

@@ -8,6 +8,7 @@ public class ReporteMensualDto
     public decimal TotalMesAnterior { get; set; }
     public decimal Diferencia { get; set; }
     public string MensajeComparacion { get; set; } = string.Empty;
-    
     public List<CategoriaReporteDto> TopCategorias { get; set; } = new List<CategoriaReporteDto>();
+    public string NombreUsuario { get; set; } = string.Empty;
+    public string Moneda { get; set; } = string.Empty;
 }

@@ -46,7 +46,7 @@ public class MetodoPagoRepository : IMetodoPagoRepository
     {
         return await _contexto.MetodosPago.AnyAsync(m =>
             m.UsuarioId == idUsuario &&
-            m.Nombre == nombreMetodoPago &&
+            m.Nombre.ToLower() == nombreMetodoPago.ToLower() &&
             m.Activo);
     }
 }

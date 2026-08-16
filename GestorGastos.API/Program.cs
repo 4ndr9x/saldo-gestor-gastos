@@ -93,4 +93,4 @@ app.MapControllers();
 
 app.Run();
 
-//TODO: fxRatesAPI
+// API usada para obtener la conversion de monedas: fxRatesAPI

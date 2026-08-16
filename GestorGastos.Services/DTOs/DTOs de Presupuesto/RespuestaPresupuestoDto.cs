@@ -11,6 +11,6 @@ public class RespuestaPresupuestoDto
     public decimal MontoGastado { get; set; }
     public decimal PorcentajeConsumido { get; set; }
 
-    public string NivelAlerta { get; set; } = string.Empty;
+    public string NivelAlerta { get; set; } = "Bajo";
 
 }

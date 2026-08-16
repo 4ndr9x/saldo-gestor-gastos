@@ -29,6 +29,12 @@ public class GastoService : IGastoService
     public async Task<RespuestaGastoDto> CrearGastoAsync(long idUsuario, CrearGastoDto gastoRecibido)
     {
 
+        if (gastoRecibido.MontoOriginal <= 0)
+        {
+            List<string> detalles = new List<string> { "El monto del gasto debe ser positivo." };
+            throw new DatosErroneosExcepcion("Ha ocurrido un error con los datos enviados.", detalles);
+        }
+        
         Categoria validacionCategoria = await ValidarCategoria(gastoRecibido.CategoriaId, idUsuario);
         MetodoPago validacionMetodoPago = await ValidarMetodoPago(gastoRecibido.MetodoPagoId, idUsuario);
         Usuario usuarioDb = await ValidarUsuario(idUsuario);
@@ -72,9 +78,11 @@ public class GastoService : IGastoService
             Fecha = g.Fecha,
             CategoriaId = g.CategoriaId,
             MetodoPagoId = g.MetodoPagoId,
-            
             Categoria = g.Categoria.Nombre, 
-            MetodoPago = g.MetodoPago.Nombre
+            MetodoPago = g.MetodoPago.Nombre,
+            MontoOriginal = g.MontoOriginal,
+            TasaCambio = Math.Round(g.TasaCambio, 2),
+            Moneda = g.Moneda
         });
     }
 
@@ -95,8 +103,7 @@ public class GastoService : IGastoService
             MetodoPago = gastoDb.MetodoPago.Nombre,
             MontoOriginal = gastoDb.MontoOriginal,
             Moneda = gastoDb.Moneda,
-            TasaCambio = gastoDb.TasaCambio
-            
+            TasaCambio = Math.Round(gastoDb.TasaCambio, 2)
         };
     }
 
@@ -171,9 +178,9 @@ public class GastoService : IGastoService
         var categoriasUsuario = await _categoriaRepositorio.ObtenerPorUsuarioAsync(idUsuario);
         var metodosPagoUsuario = await _metodoPagoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
         var gastosExistentes = await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
-
-        var dictCategorias = categoriasUsuario.ToDictionary(c => c.Id);
-        var dictMetodos = metodosPagoUsuario.ToDictionary(m => m.Id);
+        
+        var dictCategorias = categoriasUsuario.ToDictionary(c => c.Nombre.ToLower(), c => c);
+        var dictMetodos = metodosPagoUsuario.ToDictionary(m => m.Nombre.ToLower(), m => m);
         
         var firmasExistentes = new HashSet<string>(
             gastosExistentes.Select(g =>
@@ -201,6 +208,9 @@ public class GastoService : IGastoService
             var celdaConcepto = fila.Cell(6);
             var celdaMoneda = fila.Cell(7);
             
+            string nombreCategoria = celdaCategoriaId.GetString()?.Trim() ?? string.Empty;
+            string nombreMetodo = celdaMetodoId.GetString()?.Trim() ?? string.Empty;
+            
             List<string> detallesFila = new List<string>();
             
             string concepto = celdaConcepto.GetString() ?? string.Empty;
@@ -214,13 +224,37 @@ public class GastoService : IGastoService
             {
                 detallesFila.Add("El concepto supera el límite de caracteres permitidos.");
             }
-
-            if (!celdaFecha.TryGetValue(out DateTime fecha))
+            
+            DateTime fecha = DateTime.Now;
+            string valorCeldaFecha = celdaFecha.GetString();
+            bool fechaLeidaExitosamente = false;
+            
+            if (celdaFecha.TryGetValue(out DateTime fechaDesdeExcel))
             {
-                detallesFila.Add("El formato de la fecha es inválido.");
+                fecha = fechaDesdeExcel;
+                fechaLeidaExitosamente = true;
             }
-
-            else if (fecha.Date > DateTime.Now.Date)
+            
+            else if (!string.IsNullOrWhiteSpace(valorCeldaFecha) && DateTime.TryParse(valorCeldaFecha, out DateTime fechaDesdeTexto))
+            {
+                fecha = fechaDesdeTexto;
+                fechaLeidaExitosamente = true;
+            }
+            else if (double.TryParse(valorCeldaFecha, out double excelDate))
+            {
+                if (excelDate >= -657435.0 && excelDate <= 2958465.99)
+                {
+                    fecha = DateTime.FromOADate(excelDate);
+                    fechaLeidaExitosamente = true;
+                }
+            }
+            
+            if (fechaLeidaExitosamente && fecha.TimeOfDay == TimeSpan.Zero)
+            {
+                fecha = fecha.AddHours(12);
+            }
+            
+            if (fecha.Date > DateTime.Now.Date)
             {
                 detallesFila.Add("No puedes registrar un gasto con una fecha superior al día de hoy.");
             }
@@ -242,23 +276,58 @@ public class GastoService : IGastoService
                 detallesFila.Add("La descripción supera el límite de 100 caracteres.");
             }
 
-            if (!celdaCategoriaId.TryGetValue(out double catIdDoble) || !dictCategorias.ContainsKey((long)catIdDoble))
+            if (string.IsNullOrWhiteSpace(nombreCategoria))
             {
-                detallesFila.Add("La categoría especificada no existe o no te pertenece.");
+                detallesFila.Add("La categoría no puede estar vacía.");
+            }
+            else if (nombreCategoria.Length > 100)
+            {
+                detallesFila.Add("El nombre de la categoría es muy largo.");
             }
 
-            if (!celdaMetodoId.TryGetValue(out double metIdDoble) || !dictMetodos.ContainsKey((long)metIdDoble))
+            if (string.IsNullOrWhiteSpace(nombreMetodo))
             {
-                detallesFila.Add("El método de pago especificado no existe o no te pertenece.");
+                detallesFila.Add("El método de pago no puede estar vacío.");
+            }
+            else if (nombreMetodo.Length > 50)
+            {
+                detallesFila.Add("El nombre del método de pago es muy largo.");
             }
 
             if (!detallesFila.Any())
             {
                 decimal monto = (decimal)celdaMonto.GetDouble();
-                long catId = (long)celdaCategoriaId.GetDouble();
-                long metId = (long)celdaMetodoId.GetDouble();
+                long catId = 0;
+                long metId = 0;
                 
+                string catKey = nombreCategoria.ToLower();
+                if (dictCategorias.TryGetValue(catKey, out var categoriaExistente))
+                {
+                    catId = categoriaExistente.Id;
+                }
+                else
+                {
+                    var nuevaCategoria = new Categoria(nombreCategoria, idUsuario); 
+                    await _categoriaRepositorio.AgregarCategoriaAsync(nuevaCategoria); 
+                    catId = nuevaCategoria.Id;
+                    dictCategorias[catKey] = nuevaCategoria; 
+                }
+                
+                string metKey = nombreMetodo.ToLower();
+                if (dictMetodos.TryGetValue(metKey, out var metodoExistente))
+                {
+                    metId = metodoExistente.Id;
+                }
+                else
+                {
+                    var nuevoMetodo = new MetodoPago(nombreMetodo, idUsuario);
+                    await _metodoPagoRepositorio.AgregarMetodoPagoAsync(nuevoMetodo);
+                    metId = nuevoMetodo.Id;
+                    dictMetodos[metKey] = nuevoMetodo;
+                }
+            
                 string monedaFila = celdaMoneda.GetString() ?? string.Empty;
+                
                 if (string.IsNullOrWhiteSpace(monedaFila))
                 {
                     monedaFila = monedaBaseUsuario;
@@ -329,6 +398,18 @@ public class GastoService : IGastoService
             await _gastoRepositorio.AgregarRangoDeGastosAsync(gastosValidosParaGuardar);
             resultado.GastosImportadosExitosamente = gastosValidosParaGuardar.Count;
         }
+        
+        if (resultado.FilasConErrores > 0)
+        {
+            List<string> listaErroresFormateados = resultado.DetallesErrores
+                .Select(e => $"Fila {e.NumeroFila}: {e.MensajeError}")
+                .ToList();
+
+            throw new DatosErroneosExcepcion(
+                $"El archivo contiene errores en {resultado.FilasConErrores} fila(s) y la importación fue abortada.", 
+                listaErroresFormateados
+            );
+        }
 
         return resultado;
     }
@@ -372,7 +453,7 @@ public class GastoService : IGastoService
 
     private async Task<Usuario> ValidarUsuario(long idUsuario)
     {
-        Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorId(idUsuario);
+        Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorIdAsync(idUsuario);
 
         if (usuarioDb == null)
         {

@@ -47,8 +47,7 @@ public class CategoriaRepository : ICategoriaRepository
         return await _contexto.Categorias
             .AnyAsync(c => 
                 c.UsuarioId == idUsuario &&
-                c.Nombre == nombreCategoria &&
+                c.Nombre.ToLower() == nombreCategoria.ToLower() &&
                 c.Activo);
-        
     }
 }

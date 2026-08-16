@@ -15,4 +15,7 @@ public class RegistroDto
     [Required(ErrorMessage = "La contraseña es obligatoria.")]
     [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
     public string Password { get; set; } = string.Empty;
+    
+    [Required(ErrorMessage = "La seleccion de moneda es obligatoria.")]
+    public string MonedaUsada { get; set; } = string.Empty;
 }

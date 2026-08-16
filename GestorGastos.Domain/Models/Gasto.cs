@@ -1,3 +1,5 @@
+using GestorGastos.Domain.Exceptions;
+
 namespace GestorGastos.Domain.Models;
 
 public class Gasto
@@ -47,9 +49,6 @@ public class Gasto
     public void ActualizarDetalles(string concepto, string descripcion, decimal montoOriginal, 
         string moneda, decimal tasaCambio, DateTime fecha, long categoriaId, long metodoPagoId)
     {
-        if (montoOriginal <= 0) 
-            throw new ArgumentException("El monto del gasto debe ser positivo.");
-
         Concepto = concepto;
         Descripcion = descripcion;
         MontoOriginal = montoOriginal;
@@ -59,6 +58,17 @@ public class Gasto
         Fecha = fecha;
         CategoriaId = categoriaId;
         MetodoPagoId = metodoPagoId;
+    }
+
+    public void ActualizarTasaCambio(decimal tasaNueva)
+    {
+        TasaCambio = tasaNueva;
+    }
+
+    public void RecalcularConversionMoneda(decimal nuevaTasa)
+    {
+        TasaCambio = nuevaTasa;
+        MontoFinal = MontoOriginal * nuevaTasa;
     }
 
     public void CambiarEstado(bool estado)

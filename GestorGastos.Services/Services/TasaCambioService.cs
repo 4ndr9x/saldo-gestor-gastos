@@ -22,9 +22,11 @@ public class TasaCambioService : ITasaCambioService
         if (monedaOrigen == monedaDestino) return 1.0m;
         
             var respuesta = await _httpClient.GetAsync("https://api.fxratesapi.com/latest/");
-            
+
             if (!respuesta.IsSuccessStatusCode)
-                throw new ErrorConexionApi($"Error en la API externa.");
+            {
+                throw new ErrorConexionApi("Error en la API externa.");
+            }
 
             var contenidoJson = await respuesta.Content.ReadAsStringAsync();
             var opciones = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
@@ -32,7 +34,7 @@ public class TasaCambioService : ITasaCambioService
 
             if (datos == null || datos.Rates == null)
             {
-                throw new ErrorConexionApi($"Error en la API externa.");
+                throw new ErrorConexionApi("Error en la API externa.");
             }
             
             decimal tasaOrigen = 1.0m;
@@ -41,7 +43,7 @@ public class TasaCambioService : ITasaCambioService
                 if (!datos.Rates.TryGetValue(monedaOrigen, out tasaOrigen))
                 {
                     Console.WriteLine($"La API no devolvió una tasa para '{monedaOrigen}'.");
-                    throw new ErrorConexionApi($"Error en la API externa.");
+                    throw new ErrorConexionApi("Error en la API externa.");
                 }
             }
             
