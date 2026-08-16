@@ -45,16 +45,50 @@ public class GastoRepository : IGastoRepository
             .Include(g => g.MetodoPago)
             .ToListAsync();
     }
+
+    public async Task<decimal> ObtenerTotalGastadoPorMesAsync(long idUsuario, int month, int year)
+    {
+        decimal? total = await _contexto.Gastos
+            .Where(g =>
+                g.UsuarioId == idUsuario &&
+                g.Fecha.Month == month &&
+                g.Fecha.Year == year &&
+                g.Activo)
+            .SumAsync(g => (decimal?)g.MontoFinal);
+
+        return total ?? 0m;
+    }
+
     public async Task<decimal> ObtenerTotalGastadoPorCategoriaYMesAsync(long idUsuario, long idCategoria, int month, int year)
     {
-        return await _contexto.Gastos
+        decimal? total = await _contexto.Gastos
             .Where(g =>
                 g.UsuarioId == idUsuario &&
                 g.CategoriaId == idCategoria &&
                 g.Fecha.Month == month &&
                 g.Fecha.Year == year &&
                 g.Activo)
-            .SumAsync(g => g.Monto);
+            .SumAsync(g => (decimal?)g.MontoFinal);
+        
+        return total ?? 0m;
+    }
+
+    public async Task<List<(string NombreCategoria, decimal TotalGastado)>> ObtenerTopCategoriasDelMesAsync(long idUsuario, int month, int year, int cantidad = 5)
+    {
+        var resultado = await _contexto.Gastos
+            .AsNoTracking()
+            .Where(g => g.UsuarioId == idUsuario && g.Fecha.Month == month && g.Fecha.Year == year && g.Activo)
+            .GroupBy(g => new { g.CategoriaId, g.Categoria.Nombre })
+            .Select(g => new 
+            {
+                NombreCategoria = g.Key.Nombre,
+                TotalGastado = g.Sum(x => x.MontoFinal)
+            })
+            .OrderByDescending(c => c.TotalGastado)
+            .Take(cantidad)
+            .ToListAsync();
+        
+        return resultado.Select(r => (r.NombreCategoria, r.TotalGastado)).ToList();
     }
 
     public async Task ActualizarGastoAsync(Gasto gastoRecibido)

@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GestorGastos.Domain.Exceptions;
 using GestorGastos.Services.DTOs.DTOs_de_Categoria;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -17,31 +18,33 @@ public class CategoriasController : ControllerBase
     {
         _categoriaService = categoriaService;
     }
-    
+
     [HttpPost]
     public async Task<IActionResult> CrearCategoria([FromBody] CrearCategoriaDto categoriaRecibida)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
-        RespuestaCategoriaDto respuestaCategoria = await _categoriaService.CrearCategoriaAsync(idUsuario, categoriaRecibida);
+        RespuestaCategoriaDto respuestaCategoria =
+            await _categoriaService.CrearCategoriaAsync(idUsuario, categoriaRecibida);
 
-        return CreatedAtAction(nameof(ObtenerCategoriaPorId), new { idCategoria = respuestaCategoria.Id }, respuestaCategoria);
+        return CreatedAtAction(nameof(ObtenerCategoriaPorId), new { idCategoria = respuestaCategoria.Id },
+            respuestaCategoria);
     }
-    
+
     [HttpGet("{idCategoria:long}")]
     public async Task<IActionResult> ObtenerCategoriaPorId([FromRoute] long idCategoria)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         var categoria = await _categoriaService.ObtenerCategoriaPorIdAsync(idCategoria, idUsuario);
 
         return Ok(categoria);
     }
-    
+
     [HttpGet]
     public async Task<IActionResult> ObtenerMisCategorias()
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         var categorias = await _categoriaService.ObtenerCategoriasAsync(idUsuario);
 
@@ -51,7 +54,7 @@ public class CategoriasController : ControllerBase
     [HttpDelete("{idCategoria:long}")]
     public async Task<IActionResult> EliminarCategoria([FromRoute] long idCategoria)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _categoriaService.EliminarCategoriaAsync(idCategoria, idUsuario);
 
@@ -59,9 +62,10 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpPut("{idCategoria:long}")]
-    public async Task<IActionResult> ActualizarNombreCategoria([FromRoute] long idCategoria, [FromBody] ActualizarCategoriaDto categoriaRecibida)
+    public async Task<IActionResult> ActualizarNombreCategoria([FromRoute] long idCategoria,
+        [FromBody] ActualizarCategoriaDto categoriaRecibida)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _categoriaService.ActualizarCategoriaAsync(idCategoria, idUsuario, categoriaRecibida);
 
@@ -71,15 +75,23 @@ public class CategoriasController : ControllerBase
     [HttpPatch("{idCategoria:long}/restaurar")]
     public async Task<IActionResult> RestaurarCategoria([FromRoute] long idCategoria)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _categoriaService.RestaurarCategoriaAsync(idCategoria, idUsuario);
 
         return NoContent();
     }
-    
-    private string? ObtenerIdUsuario()
+
+    private long ObtenerIdUsuario()
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(idString) || !long.TryParse(idString, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("El token no contiene un identificador válido.");
+        }
+
+        return idConvertido;
+
     }
 }

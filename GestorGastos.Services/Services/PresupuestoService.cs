@@ -54,7 +54,7 @@ public class PresupuestoService : IPresupuestoService
         };
     }
 
-    public async Task<IEnumerable<RespuestaPresupuestoDto>> ObtenerResumenPresupuestosDelMesAsync(long idUsuario, int month, int year)
+    public async Task<IEnumerable<RespuestaPresupuestoDto>> ObtenerResumenPresupuestosDelMesAsync(long idUsuario, int month, int year, bool soloExcedidos)
     {
         var presupuestosDelMes = await _presupuestoRepository.ObtenerPresupuestosDelMesAsync(idUsuario, month, year);
         
@@ -71,6 +71,20 @@ public class PresupuestoService : IPresupuestoService
                 porcentaje = (totalGastado / presupuesto.MontoMaximo) * 100;
             }
             
+            string nivelAlerta = "Normal";
+            if (porcentaje >= 100)
+            {
+                nivelAlerta = "Excedido (100%+)";
+            }
+            else if (porcentaje >= 80)
+            {
+                nivelAlerta = "Peligro (80%+)";
+            }
+            else if (porcentaje >= 50)
+            {
+                nivelAlerta = "Precaución (50%+)";
+            }
+            
             listaRespuesta.Add(new RespuestaPresupuestoDto
             {
                 Id = presupuesto.Id,
@@ -80,11 +94,63 @@ public class PresupuestoService : IPresupuestoService
                 Year = presupuesto.Year,
                 MontoPresupuestado = presupuesto.MontoMaximo,
                 MontoGastado = totalGastado,
-                PorcentajeConsumido = Math.Round(porcentaje, 2)
+                PorcentajeConsumido = Math.Round(porcentaje, 2),
+                NivelAlerta = nivelAlerta
             });
         }
-
+        
+        if (soloExcedidos)
+        {
+            listaRespuesta = listaRespuesta.Where(p => p.PorcentajeConsumido > 100).ToList();
+        }
+        
         return listaRespuesta;
+    }
+    
+    public async Task<RespuestaPresupuestoDto> ObtenerPresupuestoPorIdAsync(long idPresupuesto, long idUsuario)
+    {
+        Presupuesto? presupuesto = await _presupuestoRepository.BuscarPorIdAsync(idPresupuesto, idUsuario);
+    
+        if (presupuesto == null)
+        {
+            throw new NoEncontradoExcepcion("El presupuesto no existe o no te pertenece.");
+        }
+        
+        decimal totalGastado = await _gastoRepository
+            .ObtenerTotalGastadoPorCategoriaYMesAsync(idUsuario, presupuesto.CategoriaId, presupuesto.Month, presupuesto.Year);
+
+        decimal porcentaje = 0;
+        if (presupuesto.MontoMaximo > 0)
+        {
+            porcentaje = (totalGastado / presupuesto.MontoMaximo) * 100;
+        }
+        
+        string nivelAlerta = "Normal";
+        if (porcentaje >= 100)
+        {
+            nivelAlerta = "Excedido (100%+)";
+        }
+        else if (porcentaje >= 80)
+        {
+            nivelAlerta = "Peligro (80%+)";
+        }
+        else if (porcentaje >= 50)
+        {
+            nivelAlerta = "Precaución (50%+)";
+        }
+
+        return new RespuestaPresupuestoDto
+        {
+            Id = presupuesto.Id,
+            CategoriaId = presupuesto.CategoriaId,
+            NombreCategoria = presupuesto.Categoria?.Nombre ?? "Sin Categoría",
+            Month = presupuesto.Month,
+            Year = presupuesto.Year,
+            MontoPresupuestado = presupuesto.MontoMaximo,
+            MontoGastado = totalGastado,
+            PorcentajeConsumido = Math.Round(porcentaje, 2),
+            NivelAlerta = nivelAlerta
+        };
     }
 
     public async Task ActualizarPresupuestoAsync(long idPresupuesto, long idUsuario, ActualizarPresupuestoDto presupuestoRecibido)
@@ -114,35 +180,5 @@ public class PresupuestoService : IPresupuestoService
 
         await _presupuestoRepository.ActualizarPresupuestoAsync(presupuesto);
     }
-
-    public async Task<RespuestaPresupuestoDto> ObtenerPresupuestoPorIdAsync(long idPresupuesto, long idUsuario)
-    {
-        Presupuesto? presupuesto = await _presupuestoRepository.BuscarPorIdAsync(idPresupuesto, idUsuario);
     
-        if (presupuesto == null)
-        {
-            throw new NoEncontradoExcepcion("El presupuesto no existe o no te pertenece.");
-        }
-        
-        decimal totalGastado = await _gastoRepository
-            .ObtenerTotalGastadoPorCategoriaYMesAsync(idUsuario, presupuesto.CategoriaId, presupuesto.Month, presupuesto.Year);
-
-        decimal porcentaje = 0;
-        if (presupuesto.MontoMaximo > 0)
-        {
-            porcentaje = (totalGastado / presupuesto.MontoMaximo) * 100;
-        }
-
-        return new RespuestaPresupuestoDto
-        {
-            Id = presupuesto.Id,
-            CategoriaId = presupuesto.CategoriaId,
-            NombreCategoria = presupuesto.Categoria?.Nombre ?? "Sin Categoría",
-            Month = presupuesto.Month,
-            Year = presupuesto.Year,
-            MontoPresupuestado = presupuesto.MontoMaximo,
-            MontoGastado = totalGastado,
-            PorcentajeConsumido = Math.Round(porcentaje, 2)
-        };
-    }
 }

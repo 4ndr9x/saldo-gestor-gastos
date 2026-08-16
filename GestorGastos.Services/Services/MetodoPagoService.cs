@@ -16,18 +16,16 @@ public class MetodoPagoService : IMetodoPagoService
         _repositorio = repositorio;
     }
 
-    public async Task<RespuestaMetodoPagoDto> CrearMetodoPagoAsync(string? idUsuario, CrearMetodoPagoDto metodoPagoRecibido)
+    public async Task<RespuestaMetodoPagoDto> CrearMetodoPagoAsync(long idUsuario, CrearMetodoPagoDto metodoPagoRecibido)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        bool estaCreado = await _repositorio.ExisteMetodoPagoPorNombreAsync(idConvertido, metodoPagoRecibido.Nombre);
+        bool estaCreado = await _repositorio.ExisteMetodoPagoPorNombreAsync(idUsuario, metodoPagoRecibido.Nombre);
 
         if (estaCreado)
         {
             throw new ConflictoExcepcion($"Ya tienes un método de pago activo llamado '{metodoPagoRecibido.Nombre}'."); 
         }
         
-        MetodoPago metodoPagoNuevo = new MetodoPago(metodoPagoRecibido.Nombre, idConvertido);
+        MetodoPago metodoPagoNuevo = new MetodoPago(metodoPagoRecibido.Nombre, idUsuario);
         await _repositorio.AgregarMetodoPagoAsync(metodoPagoNuevo);
 
         return new RespuestaMetodoPagoDto
@@ -37,11 +35,9 @@ public class MetodoPagoService : IMetodoPagoService
         };
     }
 
-    public async Task<IEnumerable<RespuestaMetodoPagoDto>> ObtenerMetodosPagoAsync(string? idUsuario)
+    public async Task<IEnumerable<RespuestaMetodoPagoDto>> ObtenerMetodosPagoAsync(long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        IEnumerable<MetodoPago> metodos = await _repositorio.ObtenerPorUsuarioAsync(idConvertido);
+        IEnumerable<MetodoPago> metodos = await _repositorio.ObtenerPorUsuarioAsync(idUsuario);
         
         return metodos.Select(m => new RespuestaMetodoPagoDto 
         { 
@@ -51,11 +47,9 @@ public class MetodoPagoService : IMetodoPagoService
     
     }
 
-    public async Task<RespuestaMetodoPagoDto> ObtenerMetodoPagoPorIdAsync(long idMetodoPago, string? idUsuario)
+    public async Task<RespuestaMetodoPagoDto> ObtenerMetodoPagoPorIdAsync(long idMetodoPago, long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idUsuario);
         
         if (metodo == null)
         {
@@ -69,18 +63,17 @@ public class MetodoPagoService : IMetodoPagoService
         };
     }
 
-    public async Task ActualizarMetodoPagoAsync(long idMetodoPago, string? idUsuario, ActualizarMetodoPagoDto metodoPagoRecibido)
+    public async Task ActualizarMetodoPagoAsync(long idMetodoPago, long idUsuario,
+        ActualizarMetodoPagoDto metodoPagoRecibido)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idUsuario);
         
         if (metodo == null)
         { 
             throw new NoEncontradoExcepcion("El método de pago que intentas actualizar no existe.");
         }
         
-        bool nombreEnUso = await _repositorio.ExisteMetodoPagoPorNombreAsync(idConvertido, metodoPagoRecibido.Nombre);
+        bool nombreEnUso = await _repositorio.ExisteMetodoPagoPorNombreAsync(idUsuario, metodoPagoRecibido.Nombre);
         if (nombreEnUso && metodo.Nombre != metodoPagoRecibido.Nombre)
         {
             throw new Exception($"Ya tienes un método de pago activo llamado '{metodoPagoRecibido.Nombre}'.");
@@ -90,11 +83,9 @@ public class MetodoPagoService : IMetodoPagoService
         await _repositorio.ActualizarMetodoPagoAsync(metodo);
     }
 
-    public async Task EliminarMetodoPagoAsync(long idMetodoPago, string? idUsuario)
+    public async Task EliminarMetodoPagoAsync(long idMetodoPago, long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idUsuario);
         
         if (metodo == null)
         { 
@@ -105,11 +96,9 @@ public class MetodoPagoService : IMetodoPagoService
         await _repositorio.ActualizarMetodoPagoAsync(metodo);
     }
 
-    public async Task RestaurarMetodoPagoAsync(long idMetodoPago, string? idUsuario)
+    public async Task RestaurarMetodoPagoAsync(long idMetodoPago, long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
+        MetodoPago? metodo = await _repositorio.BuscarPorIdAsync(idMetodoPago, idUsuario);
         
         if (metodo == null)
         { 
@@ -118,14 +107,5 @@ public class MetodoPagoService : IMetodoPagoService
         
         metodo.CambiarEstado(true);
         await _repositorio.ActualizarMetodoPagoAsync(metodo);
-    }
-    
-    private long ValidarUsuario(string? idUsuario)
-    {
-        if (!long.TryParse(idUsuario, out long idConvertido))
-        {
-            throw new SinAutorizacionExcepcion("Credenciales inválidas.");
-        }
-        return idConvertido;
     }
 }

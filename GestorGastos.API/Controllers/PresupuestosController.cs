@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GestorGastos.Domain.Exceptions;
 using GestorGastos.Services.DTOs.DTOs_de_Presupuesto;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -29,11 +30,11 @@ public class PresupuestosController : ControllerBase
     }
     
     [HttpGet]
-    public async Task<IActionResult> ObtenerResumenDelMes([FromQuery] int month, [FromQuery] int year)
+    public async Task<IActionResult> ObtenerResumenDelMes([FromQuery] int month, [FromQuery] int year, [FromQuery] bool soloExcedidos = false)
     {
         long idUsuario = ObtenerIdUsuario();
-
-        IEnumerable<RespuestaPresupuestoDto> resumen = await _presupuestoService.ObtenerResumenPresupuestosDelMesAsync(idUsuario, month, year);
+        
+        IEnumerable<RespuestaPresupuestoDto> resumen = await _presupuestoService.ObtenerResumenPresupuestosDelMesAsync(idUsuario, month, year, soloExcedidos);
 
         return Ok(resumen);
     }
@@ -70,13 +71,13 @@ public class PresupuestosController : ControllerBase
 
     private long ObtenerIdUsuario()
     {
-        var claimId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        if (string.IsNullOrEmpty(claimId))
+        string? idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(idString) || !long.TryParse(idString, out long idConvertido))
         {
-            throw new UnauthorizedAccessException("El token no contiene un identificador válido.");
+            throw new SinAutorizacionExcepcion("El token no contiene un identificador válido.");
         }
-            
-        return long.Parse(claimId);
+
+        return idConvertido;
     }
 }

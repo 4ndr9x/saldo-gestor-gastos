@@ -7,6 +7,7 @@ public class Usuario
     public string Email { get; private set; }
     public string PasswordHash { get; private set; }
     public bool Activo { get; private set; } = true;
+    public string MonedaUsada { get; private set; }
     public ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
     public ICollection<MetodoPago> MetodosPago { get; set; } = new List<MetodoPago>();
     
@@ -32,6 +33,11 @@ public class Usuario
     public void CambiarEstado(bool estado)
     {
         Activo = estado;
+    }
+
+    public void CambiarMonedaUsada(string monedaUsada)
+    {
+        MonedaUsada = monedaUsada;
     }
 
 }

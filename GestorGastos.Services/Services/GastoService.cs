@@ -14,11 +14,16 @@ public class GastoService : IGastoService
     private readonly ICategoriaRepository _categoriaRepositorio;
     private readonly IMetodoPagoRepository _metodoPagoRepositorio;
     
-    public GastoService(IGastoRepository gastoRepositorio, ICategoriaRepository categoriaRepositorio, IMetodoPagoRepository metodoPagoRepositorio)
+    private readonly IUsuarioRepository _usuarioRepositorio;
+    private readonly ITasaCambioService _tasaCambioService;
+    public GastoService(IGastoRepository gastoRepositorio, ICategoriaRepository categoriaRepositorio, IMetodoPagoRepository metodoPagoRepositorio, 
+        IUsuarioRepository usuarioRepositorio, ITasaCambioService tasaCambioService)
     {
         _gastoRepositorio = gastoRepositorio;
         _categoriaRepositorio = categoriaRepositorio;
         _metodoPagoRepositorio = metodoPagoRepositorio;
+        _usuarioRepositorio = usuarioRepositorio;
+        _tasaCambioService = tasaCambioService;
     }
     
     public async Task<RespuestaGastoDto> CrearGastoAsync(long idUsuario, CrearGastoDto gastoRecibido)
@@ -26,23 +31,30 @@ public class GastoService : IGastoService
 
         Categoria validacionCategoria = await ValidarCategoria(gastoRecibido.CategoriaId, idUsuario);
         MetodoPago validacionMetodoPago = await ValidarMetodoPago(gastoRecibido.MetodoPagoId, idUsuario);
+        Usuario usuarioDb = await ValidarUsuario(idUsuario);
+        
+        decimal tasaCambioCalculada = await _tasaCambioService.ObtenerTasaCambioAsync(gastoRecibido.Moneda, usuarioDb.MonedaUsada);
 
-        Gasto gastoNuevo = new Gasto(gastoRecibido.Descripcion, gastoRecibido.Monto, gastoRecibido.Fecha,
-            gastoRecibido.CategoriaId, gastoRecibido.MetodoPagoId, idUsuario);
+        Gasto gastoNuevo = new Gasto(gastoRecibido.Concepto ,gastoRecibido.Descripcion, gastoRecibido.MontoOriginal,
+            usuarioDb.MonedaUsada, tasaCambioCalculada, gastoRecibido.Fecha, gastoRecibido.CategoriaId, gastoRecibido.MetodoPagoId, idUsuario);
         
         await _gastoRepositorio.AgregarGastoAsync(gastoNuevo);
         
         return new RespuestaGastoDto
         {
             Id = gastoNuevo.Id,
+            Concepto = gastoNuevo.Concepto,
             Descripcion = gastoNuevo.Descripcion,
-            Monto = gastoNuevo.Monto,
+            MontoFinal = gastoNuevo.MontoFinal,
             Fecha = gastoNuevo.Fecha,
             CategoriaId = gastoNuevo.CategoriaId,
             MetodoPagoId = gastoNuevo.MetodoPagoId,
-            
             Categoria = validacionCategoria.Nombre,
-            MetodoPago = validacionMetodoPago.Nombre
+            MetodoPago = validacionMetodoPago.Nombre,
+            
+            MontoOriginal = gastoNuevo.MontoOriginal,
+            Moneda = gastoRecibido.Moneda,
+            TasaCambio = gastoNuevo.TasaCambio 
         };
     }
 
@@ -54,8 +66,9 @@ public class GastoService : IGastoService
         return gastosDb.Select(g => new RespuestaGastoDto
         {
             Id = g.Id,
+            Concepto = g.Concepto,
             Descripcion = g.Descripcion,
-            Monto = g.Monto,
+            MontoFinal = g.MontoFinal,
             Fecha = g.Fecha,
             CategoriaId = g.CategoriaId,
             MetodoPagoId = g.MetodoPagoId,
@@ -72,14 +85,18 @@ public class GastoService : IGastoService
         return new RespuestaGastoDto
         {
             Id = gastoDb.Id,
+            Concepto = gastoDb.Concepto,
             Descripcion = gastoDb.Descripcion,
-            Monto = gastoDb.Monto,
+            MontoFinal = gastoDb.MontoFinal,
             Fecha = gastoDb.Fecha,
             CategoriaId = gastoDb.CategoriaId,
             MetodoPagoId = gastoDb.MetodoPagoId,
-            
             Categoria = gastoDb.Categoria.Nombre,
-            MetodoPago = gastoDb.MetodoPago.Nombre
+            MetodoPago = gastoDb.MetodoPago.Nombre,
+            MontoOriginal = gastoDb.MontoOriginal,
+            Moneda = gastoDb.Moneda,
+            TasaCambio = gastoDb.TasaCambio
+            
         };
     }
 
@@ -98,9 +115,24 @@ public class GastoService : IGastoService
             await ValidarMetodoPago(gastoRecibido.MetodoPagoId, idUsuario);
         }
         
+        decimal tasaCambioParaGuardar = gastoDb.TasaCambio;
+        string nuevaMoneda = gastoRecibido.Moneda.ToUpper().Trim();
+        
+        if (gastoDb.Moneda != nuevaMoneda)
+        {
+            var usuario = await ValidarUsuario(idUsuario);
+        
+            string monedaUsadaUsuario = usuario.MonedaUsada;
+            
+            tasaCambioParaGuardar = await _tasaCambioService.ObtenerTasaCambioAsync(nuevaMoneda, monedaUsadaUsuario);
+        }
+        
         gastoDb.ActualizarDetalles(
+            gastoRecibido.Concepto,
             gastoRecibido.Descripcion, 
-            gastoRecibido.Monto, 
+            gastoRecibido.MontoOriginal,
+            nuevaMoneda,
+            tasaCambioParaGuardar,
             gastoRecibido.Fecha, 
             gastoRecibido.CategoriaId, 
             gastoRecibido.MetodoPagoId
@@ -111,12 +143,7 @@ public class GastoService : IGastoService
     
     public async Task EliminarGastoAsync(long idGasto, long idUsuario)
     {
-        Gasto? gastoDb = await _gastoRepositorio.BuscarPorIdAsync(idGasto, idUsuario);
-
-        if (gastoDb == null)
-        {
-            throw new NoEncontradoExcepcion("El gasto que has intentado buscar no existe.");
-        }
+        Gasto gastoDb = await ValidarGasto(idGasto, idUsuario);
         
         gastoDb.CambiarEstado(false);
         
@@ -125,93 +152,178 @@ public class GastoService : IGastoService
 
     public async Task RestaurarGastoAsync(long idGasto, long idUsuario)
     {
-        Gasto? gastoDb = await _gastoRepositorio.BuscarPorIdAsync(idGasto, idUsuario);
-
-        if (gastoDb == null)
-        {
-            throw new NoEncontradoExcepcion("El gasto que has intentado buscar no existe.");
-        }
+        Gasto gastoDb = await ValidarGasto(idGasto, idUsuario);
         
         gastoDb.CambiarEstado(true);
         
         await _gastoRepositorio.ActualizarGastoAsync(gastoDb);
     }
     
+    // METODOS PARA MANEJAR LA IMPORTACION DEL EXCEL Y LA DESCARGA DE LA PLANTILLA
     public async Task<ResultadoImportacionDto> ImportarGastosDesdeExcelAsync(long idUsuario, Stream archivoExcel)
     {
-        
         var resultado = new ResultadoImportacionDto();
-            
         var gastosValidosParaGuardar = new List<Gasto>();
         
+        Usuario usuario = await ValidarUsuario(idUsuario);
+        string monedaBaseUsuario = usuario.MonedaUsada ?? "USD";
+
         var categoriasUsuario = await _categoriaRepositorio.ObtenerPorUsuarioAsync(idUsuario);
         var metodosPagoUsuario = await _metodoPagoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
-        
-        
+        var gastosExistentes = await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
+
         var dictCategorias = categoriasUsuario.ToDictionary(c => c.Id);
         var dictMetodos = metodosPagoUsuario.ToDictionary(m => m.Id);
         
+        var firmasExistentes = new HashSet<string>(
+            gastosExistentes.Select(g =>
+                $"{g.Fecha:yyyyMMddHHmmss}_{g.MontoOriginal}_{g.Moneda}_{g.Descripcion.Trim().ToLower()}_{g.CategoriaId}_{g.MetodoPagoId}")
+        );
+        
+        var firmasEnEsteExcel = new HashSet<string>();
+        
+        var cacheTasas = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
+        
         using var workbook = new XLWorkbook(archivoExcel);
         var worksheet = workbook.Worksheet(1);
-        
         var filas = worksheet.RowsUsed().Skip(1); 
-        
         int numeroFilaActual = 2;
-        
+
         foreach (var fila in filas)
         {
             resultado.TotalFilasProcesadas++;
-            
-            try 
-            {
-                var celdaFecha = fila.Cell(1);
-                var celdaMonto = fila.Cell(2);
-                var celdaDescripcion = fila.Cell(3);
-                var celdaCategoriaId = fila.Cell(4);
-                var celdaMetodoId = fila.Cell(5);
-                
-                if (!celdaFecha.TryGetValue(out DateTime fecha)) 
-                    throw new Exception("El formato de la fecha es inválido.");
-                
-                if (!celdaMonto.TryGetValue(out double montoDoble) || montoDoble <= 0) 
-                    throw new Exception("El monto debe ser un número válido y mayor a 0.");
-                decimal monto = (decimal)montoDoble;
-                
-                string descripcion = celdaDescripcion.GetString() ?? string.Empty;
-                if (string.IsNullOrWhiteSpace(descripcion))
-                    throw new Exception("La descripción no puede estar vacía.");
-                if (descripcion.Length > 100)
-                    throw new Exception("La descripción supera el límite de 100 caracteres.");
-                
-                if (!celdaCategoriaId.TryGetValue(out double catIdDoble) || !dictCategorias.ContainsKey((long)catIdDoble))
-                    throw new Exception("La categoría especificada no existe o no te pertenece.");
-                long catId = (long)catIdDoble;
 
-                if (!celdaMetodoId.TryGetValue(out double metIdDoble) || !dictMetodos.ContainsKey((long)metIdDoble))
-                    throw new Exception("El método de pago especificado no existe o no te pertenece.");
-                long metId = (long)metIdDoble;
-                
-                gastosValidosParaGuardar.Add(new Gasto(
-                    descripcion,
-                    monto,
-                    fecha,
-                    catId,
-                    metId,
-                    idUsuario
-                ));
+            var celdaFecha = fila.Cell(1);
+            var celdaMonto = fila.Cell(2);
+            var celdaDescripcion = fila.Cell(3);
+            var celdaCategoriaId = fila.Cell(4);
+            var celdaMetodoId = fila.Cell(5);
+            var celdaConcepto = fila.Cell(6);
+            var celdaMoneda = fila.Cell(7);
+            
+            List<string> detallesFila = new List<string>();
+            
+            string concepto = celdaConcepto.GetString() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(concepto))
+            {
+                detallesFila.Add("El concepto no puede estar vacío.");
             }
-            catch (Exception ex)
+
+            else if (concepto.Length > 100)
+            {
+                detallesFila.Add("El concepto supera el límite de caracteres permitidos.");
+            }
+
+            if (!celdaFecha.TryGetValue(out DateTime fecha))
+            {
+                detallesFila.Add("El formato de la fecha es inválido.");
+            }
+
+            else if (fecha.Date > DateTime.Now.Date)
+            {
+                detallesFila.Add("No puedes registrar un gasto con una fecha superior al día de hoy.");
+            }
+
+            if (!celdaMonto.TryGetValue(out double montoDoble) || montoDoble <= 0)
+            {
+                detallesFila.Add("El monto debe ser un número válido y mayor a 0.");
+            }
+
+            string descripcion = celdaDescripcion.GetString() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(descripcion))
+            {
+                detallesFila.Add("La descripción no puede estar vacía.");
+            }
+
+            else if (descripcion.Length > 100)
+            {
+                detallesFila.Add("La descripción supera el límite de 100 caracteres.");
+            }
+
+            if (!celdaCategoriaId.TryGetValue(out double catIdDoble) || !dictCategorias.ContainsKey((long)catIdDoble))
+            {
+                detallesFila.Add("La categoría especificada no existe o no te pertenece.");
+            }
+
+            if (!celdaMetodoId.TryGetValue(out double metIdDoble) || !dictMetodos.ContainsKey((long)metIdDoble))
+            {
+                detallesFila.Add("El método de pago especificado no existe o no te pertenece.");
+            }
+
+            if (!detallesFila.Any())
+            {
+                decimal monto = (decimal)celdaMonto.GetDouble();
+                long catId = (long)celdaCategoriaId.GetDouble();
+                long metId = (long)celdaMetodoId.GetDouble();
+                
+                string monedaFila = celdaMoneda.GetString() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(monedaFila))
+                {
+                    monedaFila = monedaBaseUsuario;
+                }
+
+                monedaFila = monedaFila.Trim().ToUpper();
+                decimal tasaFila = 1.0m;
+
+                try
+                {
+                    if (!cacheTasas.TryGetValue(monedaFila, out tasaFila))
+                    {
+                        tasaFila = await _tasaCambioService.ObtenerTasaCambioAsync(monedaFila, monedaBaseUsuario);
+                        cacheTasas[monedaFila] = tasaFila;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    detallesFila.Add($"Error al obtener la tasa de cambio para {monedaFila}.");
+                }
+                
+                if (!detallesFila.Any())
+                {
+                    string firmaFilaActual = $"{fecha:yyyyMMddHHmmss}_{monto}_{monedaFila}_{descripcion.Trim().ToLower()}_{catId}_{metId}";
+
+                    if (firmasExistentes.Contains(firmaFilaActual))
+                    {
+                        detallesFila.Add("Este gasto ya se encuentra registrado en el sistema (Duplicado).");
+                    }
+                    else if (firmasEnEsteExcel.Contains(firmaFilaActual))
+                    {
+                        detallesFila.Add("Este gasto está duplicado dentro de este mismo archivo Excel.");
+                    }
+                    else
+                    {
+                        firmasEnEsteExcel.Add(firmaFilaActual);
+                        
+                        gastosValidosParaGuardar.Add(new Gasto(
+                            concepto ?? "",
+                            descripcion,
+                            monto,
+                            monedaFila,
+                            tasaFila,
+                            fecha,
+                            catId,
+                            metId,
+                            idUsuario
+                        ));
+                    }
+                }
+            }
+            
+            if (detallesFila.Any())
             {
                 resultado.FilasConErrores++;
                 resultado.DetallesErrores.Add(new DetalleErrorFilaDto 
                 {
                     NumeroFila = numeroFilaActual,
-                    MensajeError = ex.Message
+                    MensajeError = string.Join(" | ", detallesFila) 
                 });
             }
+
             numeroFilaActual++;
         }
-        
+
         if (gastosValidosParaGuardar.Any())
         {
             await _gastoRepositorio.AgregarRangoDeGastosAsync(gastosValidosParaGuardar);
@@ -221,9 +333,7 @@ public class GastoService : IGastoService
         return resultado;
     }
     
-
     // METODOS PRIVADOS PARA LA VALIDACION DE LA INFORMACIÓN.
-    
     private async Task<Categoria> ValidarCategoria(long idCategoria, long idConvertido)
     {
         Categoria? validacionCategoria = await _categoriaRepositorio.BuscarPorIdAsync(idCategoria, idConvertido);
@@ -236,9 +346,9 @@ public class GastoService : IGastoService
         return validacionCategoria;
     }
 
-    private async Task<MetodoPago> ValidarMetodoPago(long idMetodoPago, long idConvertido)
+    private async Task<MetodoPago> ValidarMetodoPago(long idMetodoPago, long idUsuario)
     {
-        MetodoPago? validacionMetodoPago = await _metodoPagoRepositorio.BuscarPorIdAsync(idMetodoPago, idConvertido);
+        MetodoPago? validacionMetodoPago = await _metodoPagoRepositorio.BuscarPorIdAsync(idMetodoPago, idUsuario);
 
         if (validacionMetodoPago == null)
         {
@@ -248,9 +358,9 @@ public class GastoService : IGastoService
         return validacionMetodoPago;
     }
 
-    private async Task<Gasto> ValidarGasto(long idGasto, long idConvertido)
+    private async Task<Gasto> ValidarGasto(long idGasto, long idUsuario)
     {
-        Gasto? gastoDb = await _gastoRepositorio.BuscarPorIdAsync(idGasto, idConvertido);
+        Gasto? gastoDb = await _gastoRepositorio.BuscarPorIdAsync(idGasto, idUsuario);
         
         if (gastoDb == null)
         {
@@ -258,5 +368,17 @@ public class GastoService : IGastoService
         }
 
         return gastoDb;
+    }
+
+    private async Task<Usuario> ValidarUsuario(long idUsuario)
+    {
+        Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorId(idUsuario);
+
+        if (usuarioDb == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
+
+        return usuarioDb;
     }
 }

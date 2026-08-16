@@ -22,7 +22,7 @@ public class UsuarioService : IUsuarioService
         _repositorio = repositorio;
         _configuracion = configuracion;
     }
-    //TODO: DEVOLVER EL USUARIO Y NO EL ID SOLO
+    
     public async Task<long> RegistrarUsuarioAsync(RegistroDto usuarioRecibido)
     {
         Usuario? usuarioDb = await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
@@ -78,6 +78,19 @@ public class UsuarioService : IUsuarioService
         string tokenString = new JwtSecurityTokenHandler().WriteToken(opcionesToken);
 
         return new RespuestaAuthDto {Token = tokenString, NombreUsuario = usuarioDb.Nombre, Email = usuarioDb.Email};
+    }
+
+    public async Task ActualizarMonedaUsadaAsync(long idUsuario, ActualizarMonedaUsadaDto usuarioRecibido)
+    {
+        Usuario? usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
+        
+        if (usuarioDb == null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
+        
+        usuarioDb.CambiarMonedaUsada(usuarioRecibido.MonedaUsada);
+        await _repositorio.ActualizarUsuarioAsync(usuarioDb);
     }
 
     public async Task ActualizarPerfilAsync(long idUsuario, ActualizarPerfilDto usuarioRecibido)

@@ -14,10 +14,12 @@ namespace GestorGastos.API.Controllers;
 public class GastosController : ControllerBase
 {
     private readonly IGastoService _gastoService;
+    private readonly IExportacionService _exportacionService;
 
-    public GastosController(IGastoService gastoService)
+    public GastosController(IGastoService gastoService, IExportacionService exportacionService)
     {
         _gastoService = gastoService;
+        _exportacionService = exportacionService;
     }
 
     [HttpPost]
@@ -84,6 +86,19 @@ public class GastosController : ControllerBase
         ResultadoImportacionDto resultado = await _gastoService.ImportarGastosDesdeExcelAsync(idUsuario, stream);
         
         return Ok(resultado);
+    }
+    
+    [HttpGet("plantilla-importacion")]
+    public IActionResult DescargarPlantillaImportacion()
+    {
+        // Como es solo una plantilla estática, no necesitamos el ID del usuario
+        var archivoBytes = _exportacionService.GenerarPlantillaImportacionExcel();
+    
+        return File(
+            archivoBytes, 
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", 
+            "Plantilla_Importar_Gastos.xlsx"
+        );
     }
     
     // METODOS PRIVADOS PARA VALIDAR ANTES DE ENVIAR DATOS A LOS SERVICIOS.

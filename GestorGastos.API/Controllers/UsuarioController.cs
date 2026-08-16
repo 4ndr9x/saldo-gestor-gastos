@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace GestorGastos.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsuarioController : ControllerBase
@@ -17,6 +18,7 @@ public class UsuarioController : ControllerBase
         _usuarioService = usuarioService;
     }
 
+    [AllowAnonymous]
     [HttpPost("registro")]
     public async Task<IActionResult> RegistrarUsuario([FromBody] RegistroDto usuarioRecibido)
     {
@@ -24,48 +26,54 @@ public class UsuarioController : ControllerBase
         return Created(string.Empty, new { mensaje = "Usuario registrado exitosamente.", id = idUsuarioRegistrado });
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> IniciarSesion([FromBody] InicioSesionDto usuarioRecibido)
     {
         RespuestaAuthDto token = await _usuarioService.AutenticarUsuarioAsync(usuarioRecibido);
         return Ok(token);
     }
-
-    [Authorize]
+    
     [HttpPut("perfil")]
     public async Task<IActionResult> ActualizarNombrePerfil([FromBody] ActualizarPerfilDto usuarioRecibido)
     {
-        long idUsuario = ValidarUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _usuarioService.ActualizarPerfilAsync(idUsuario, usuarioRecibido);
         return Ok(new { mensaje = "Tu perfil ha sido actualizado correctamente." });
     }
-
-    [Authorize]
+    
     [HttpPut("cambiar-password")]
     public async Task<IActionResult> ActualizarPassword([FromBody] CambiarPasswordDto usuarioRecibido)
     {
-        long idUsuario = ValidarUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _usuarioService.ActualizarPasswordAsync(idUsuario, usuarioRecibido);
         return Ok(new { mensaje = "Tu contraseña ha sido actualizada correctamente." });
     }
+    
+    [HttpPut("cambiar-moneda")]
+    public async Task<IActionResult> ActualizarMoneda([FromBody] ActualizarMonedaUsadaDto usuarioRecibido)
+    {
+        long idUsuario = ObtenerIdUsuario();
 
-    [Authorize]
+        await _usuarioService.ActualizarMonedaUsadaAsync(idUsuario, usuarioRecibido);
+        return Ok(new { mensaje = "Tu moneda ha sido actualizada correctamente." });
+    }
+    
     [HttpDelete("cuenta")]
     public async Task<IActionResult> EliminarUsuario()
     {
-        long idUsuario = ValidarUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _usuarioService.EliminarCuentaAsync(idUsuario);
         return NoContent();
     }
     
-    [Authorize]
     [HttpGet("perfil")]
     public IActionResult ObtenerMiPerfil()
     {
-        long idUsuario = ValidarUsuario();
+        long idUsuario = ObtenerIdUsuario();
         string? correo = User.FindFirstValue(ClaimTypes.Email); 
         string? nombre = User.FindFirstValue(ClaimTypes.Name);
         
@@ -77,13 +85,13 @@ public class UsuarioController : ControllerBase
         return Ok(respuestaPerfil);
     }
     
-    private long ValidarUsuario()
+    private long ObtenerIdUsuario()
     {
         string? idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        if (!long.TryParse(idString, out long idConvertido))
+
+        if (string.IsNullOrEmpty(idString) || !long.TryParse(idString, out long idConvertido))
         {
-            throw new SinAutorizacionExcepcion("Credenciales inválidas.");
+            throw new SinAutorizacionExcepcion("El token no contiene un identificador válido.");
         }
 
         return idConvertido;

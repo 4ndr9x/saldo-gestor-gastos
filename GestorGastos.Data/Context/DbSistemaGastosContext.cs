@@ -21,15 +21,45 @@ public class DbSistemaGastosContext : DbContext
 
         modelBuilder.HasDefaultSchema("GestorGastos");
         
+        // Modelado de Usuario
+        modelBuilder.Entity<Usuario>()
+            .Property(u => u.Nombre)
+            .IsRequired()
+            .HasMaxLength(100);
+        
+        modelBuilder.Entity<Usuario>()
+            .Property(u => u.Email)
+            .IsRequired()
+            .HasMaxLength(100);
+        
+        modelBuilder.Entity<Usuario>()
+            .Property(u => u.Email)
+            .IsRequired()
+            .HasMaxLength(100);
+        
+        modelBuilder.Entity<Usuario>()
+            .Property(u => u.PasswordHash)
+            .HasMaxLength(200);
+        
+        modelBuilder.Entity<Usuario>()
+            .Property(u => u.MonedaUsada)
+            .IsRequired()
+            .HasMaxLength(4);
+        
         // Modelado de Gasto
         modelBuilder.Entity<Gasto>()
-            .Property(g => g.Monto)
-            .HasPrecision(18, 2); 
+            .Property(g => g.Concepto)
+            .IsRequired()
+            .HasMaxLength(100);
         
         modelBuilder.Entity<Gasto>()
             .Property(g => g.Descripcion)
             .IsRequired()
             .HasMaxLength(100);
+        
+        modelBuilder.Entity<Gasto>()
+            .Property(g => g.MontoFinal)
+            .HasPrecision(18, 2); 
         
         modelBuilder.Entity<Gasto>()
             .HasOne(g => g.Categoria)
@@ -42,6 +72,14 @@ public class DbSistemaGastosContext : DbContext
             .WithMany()
             .HasForeignKey(g => g.MetodoPagoId)
             .OnDelete(DeleteBehavior.Restrict);
+        
+        modelBuilder.Entity<Gasto>()
+            .Property(g => g.MontoOriginal)
+            .HasPrecision(18, 2); 
+        
+        modelBuilder.Entity<Gasto>()
+            .Property(g => g.TasaCambio)
+            .HasPrecision(18, 10); 
         
         // Modelado de Categoria
         modelBuilder.Entity<Categoria>(entidad =>
@@ -74,7 +112,10 @@ public class DbSistemaGastosContext : DbContext
             entidad.HasOne(m => m.Usuario)
                 .WithMany(u => u.MetodosPago)
                 .HasForeignKey(m => m.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entidad.Property(m => m.Icono)
+                .HasMaxLength(300);
         });
         
         // Modelado de los presupuestos

@@ -15,18 +15,16 @@ public class CategoriaService : ICategoriaService
         _repositorio = repositorio;
     }
 
-    public async Task<RespuestaCategoriaDto> CrearCategoriaAsync(string? idUsuario, CrearCategoriaDto categoriaRecibida)
+    public async Task<RespuestaCategoriaDto> CrearCategoriaAsync(long idUsuario, CrearCategoriaDto categoriaRecibida)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-
-        bool estaCreada = await _repositorio.ExisteCategoriaPorNombreAsync(idConvertido, categoriaRecibida.Nombre);
+        bool estaCreada = await _repositorio.ExisteCategoriaPorNombreAsync(idUsuario, categoriaRecibida.Nombre);
 
         if (estaCreada)
         {
             throw new ConflictoExcepcion($"Ya tienes una categoría activa llamada '{categoriaRecibida.Nombre}'.");
         }
         
-        Categoria categoriaNueva = new Categoria(categoriaRecibida.Nombre, idConvertido);
+        Categoria categoriaNueva = new Categoria(categoriaRecibida.Nombre, idUsuario);
         await _repositorio.AgregarCategoriaAsync(categoriaNueva);
 
         RespuestaCategoriaDto respuestaCategoria = new RespuestaCategoriaDto();
@@ -36,19 +34,15 @@ public class CategoriaService : ICategoriaService
         return respuestaCategoria;
     }
 
-    public async Task<IEnumerable<RespuestaCategoriaDto>> ObtenerCategoriasAsync(string? idUsuario)
+    public async Task<IEnumerable<RespuestaCategoriaDto>> ObtenerCategoriasAsync(long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        IEnumerable<Categoria> categorias = await _repositorio.ObtenerPorUsuarioAsync(idConvertido);
+        IEnumerable<Categoria> categorias = await _repositorio.ObtenerPorUsuarioAsync(idUsuario);
         return categorias.Select(c => new RespuestaCategoriaDto { Id = c.Id, Nombre = c.Nombre });
     }
 
-    public async Task<RespuestaCategoriaDto> ObtenerCategoriaPorIdAsync(long idCategoria, string? idUsuario)
+    public async Task<RespuestaCategoriaDto> ObtenerCategoriaPorIdAsync(long idCategoria, long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idUsuario);
         
         if (categoria == null)
         {
@@ -62,11 +56,9 @@ public class CategoriaService : ICategoriaService
         return respuestaCategoria;
     }
 
-    public async Task EliminarCategoriaAsync(long idCategoria, string? idUsuario)
+    public async Task EliminarCategoriaAsync(long idCategoria, long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idUsuario);
         
         if (categoria == null)
         { 
@@ -78,11 +70,9 @@ public class CategoriaService : ICategoriaService
         await _repositorio.ActualizarCategoriaAsync(categoria);
     }
 
-    public async Task RestaurarCategoriaAsync(long idCategoria, string? idUsuario)
+    public async Task RestaurarCategoriaAsync(long idCategoria, long idUsuario)
     {
-        long idConvertido = ValidarUsuario(idUsuario);
-        
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idUsuario);
         
         if (categoria == null)
         { 
@@ -94,12 +84,10 @@ public class CategoriaService : ICategoriaService
         await _repositorio.ActualizarCategoriaAsync(categoria);
     }
     
-    public async Task ActualizarCategoriaAsync(long idCategoria, string? idUsuario, ActualizarCategoriaDto categoriaRecibida)
+    public async Task ActualizarCategoriaAsync(long idCategoria, long idUsuario, ActualizarCategoriaDto categoriaRecibida)
     {
-
-        long idConvertido = ValidarUsuario(idUsuario);
         
-        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idConvertido);
+        Categoria? categoria = await _repositorio.BuscarPorIdAsync(idCategoria, idUsuario);
         
         if (categoria == null)
         { 
@@ -110,13 +98,5 @@ public class CategoriaService : ICategoriaService
 
         await _repositorio.ActualizarCategoriaAsync(categoria);
     }
-
-    private long ValidarUsuario(string? idUsuario)
-    {
-        if (!long.TryParse(idUsuario, out long idConvertido))
-        {
-            throw new SinAutorizacionExcepcion("Credenciales inválidas.");
-        }
-        return idConvertido;
-    }
+    
 }

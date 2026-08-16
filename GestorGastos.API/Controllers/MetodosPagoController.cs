@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using GestorGastos.Domain.Exceptions;
 using GestorGastos.Services.DTOs.DTOs_de_MetodoPago;
 using GestorGastos.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,7 @@ public class MetodosPagoController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CrearMetodoPago([FromBody] CrearMetodoPagoDto dtoRecibido)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         RespuestaMetodoPagoDto respuesta = await _metodoPagoService.CrearMetodoPagoAsync(idUsuario, dtoRecibido);
         
@@ -31,7 +32,7 @@ public class MetodosPagoController : ControllerBase
     [HttpGet("{idMetodoPago:long}")]
     public async Task<IActionResult> ObtenerMetodoPagoPorId([FromRoute] long idMetodoPago)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         var metodoPago = await _metodoPagoService.ObtenerMetodoPagoPorIdAsync(idMetodoPago, idUsuario);
 
@@ -41,7 +42,7 @@ public class MetodosPagoController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> ObtenerMisMetodosPago()
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         var metodos = await _metodoPagoService.ObtenerMetodosPagoAsync(idUsuario);
 
@@ -51,7 +52,7 @@ public class MetodosPagoController : ControllerBase
     [HttpDelete("{idMetodoPago:long}")]
     public async Task<IActionResult> EliminarMetodoPago([FromRoute] long idMetodoPago)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _metodoPagoService.EliminarMetodoPagoAsync(idMetodoPago, idUsuario);
 
@@ -61,7 +62,7 @@ public class MetodosPagoController : ControllerBase
     [HttpPut("{idMetodoPago:long}")]
     public async Task<IActionResult> ActualizarNombreMetodoPago([FromRoute] long idMetodoPago, [FromBody] ActualizarMetodoPagoDto dtoRecibido)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _metodoPagoService.ActualizarMetodoPagoAsync(idMetodoPago, idUsuario, dtoRecibido);
 
@@ -71,15 +72,22 @@ public class MetodosPagoController : ControllerBase
     [HttpPatch("{idMetodoPago:long}/restaurar")]
     public async Task<IActionResult> RestaurarMetodoPago([FromRoute] long idMetodoPago)
     {
-        string? idUsuario = ObtenerIdUsuario();
+        long idUsuario = ObtenerIdUsuario();
 
         await _metodoPagoService.RestaurarMetodoPagoAsync(idMetodoPago, idUsuario);
 
         return NoContent();
     }
-    
-    private string? ObtenerIdUsuario()
+
+    private long ObtenerIdUsuario()
     {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? idString = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(idString) || !long.TryParse(idString, out long idConvertido))
+        {
+            throw new SinAutorizacionExcepcion("El token no contiene un identificador válido.");
+        }
+        return idConvertido;
+
     }
 }

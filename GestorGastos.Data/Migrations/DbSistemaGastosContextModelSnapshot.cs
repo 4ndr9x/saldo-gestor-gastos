@@ -63,6 +63,11 @@ namespace GestorGastos.Data.Migrations
                     b.Property<long>("CategoriaId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("Concepto")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Descripcion")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -74,9 +79,21 @@ namespace GestorGastos.Data.Migrations
                     b.Property<long>("MetodoPagoId")
                         .HasColumnType("bigint");
 
-                    b.Property<decimal>("Monto")
+                    b.Property<string>("Moneda")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("MontoFinal")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MontoOriginal")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TasaCambio")
+                        .HasPrecision(18, 10)
+                        .HasColumnType("decimal(18,10)");
 
                     b.Property<long>("UsuarioId")
                         .HasColumnType("bigint");
@@ -102,6 +119,11 @@ namespace GestorGastos.Data.Migrations
 
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Icono")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -167,15 +189,23 @@ namespace GestorGastos.Data.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("MonedaUsada")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 

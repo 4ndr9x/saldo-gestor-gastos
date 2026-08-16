@@ -6,13 +6,13 @@ using GestorGastos.Data.Repository;
 using GestorGastos.Domain.Interfaces;
 using GestorGastos.Services.Interfaces;
 using GestorGastos.Services.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-//builder.Services.AddSwaggerGen();
 builder.Services.AddControllers();
 builder.Services.AddSqlServer<DbSistemaGastosContext>(builder.Configuration.GetConnectionString("AppConnection"));
 
@@ -28,6 +28,10 @@ builder.Services.AddScoped<ICategoriaService, CategoriaService>();
 builder.Services.AddScoped<IMetodoPagoService, MetodoPagoService>();
 builder.Services.AddScoped<IGastoService, GastoService>();
 builder.Services.AddScoped<IPresupuestoService, PresupuestoService>();
+builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<IExportacionService, ExportacionService>();
+
+builder.Services.AddHttpClient<ITasaCambioService, TasaCambioService>();
 
 // == 
 
@@ -54,12 +58,25 @@ builder.Services.AddAuthentication(opciones =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<DbSistemaGastosContext>();
+        context.Database.Migrate();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error crítico al aplicar las migraciones a la base de datos.");
+    }
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    //app.MapSwagger();
-    //app.MapSwaggerUI();
 }
 
 // Inyeccion de middlewares
@@ -76,4 +93,4 @@ app.MapControllers();
 
 app.Run();
 
-// TODO: MODIFICAR LA OBTENCION DEL ID DE USUARIO EN TODOS LOS DEMAS SERVICIOS Y CONTROLADORES
+//TODO: fxRatesAPI
