@@ -6,6 +6,7 @@ using GestorGastos.Data.Repository;
 using GestorGastos.Domain.Interfaces;
 using GestorGastos.Services.Interfaces;
 using GestorGastos.Services.Services;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
@@ -14,7 +15,28 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRouting(opciones => opciones.LowercaseUrls = true);
 builder.Services.AddOpenApi();
-builder.Services.AddControllers();
+builder.Services.AddControllers().ConfigureApiBehaviorOptions(opciones =>
+{
+    opciones.SuppressMapClientErrors = true;
+    
+    opciones.InvalidModelStateResponseFactory = contexto =>
+    {
+        var errores = contexto.ModelState
+            .Where(e => e.Value.Errors.Count > 0)
+            .SelectMany(x => x.Value.Errors.Select(e => e.ErrorMessage))
+            .ToList();
+        
+        var respuesta = new
+        {
+            codigo = 400,
+            mensaje = "Ocurrió un error con la información enviada.",
+            detalles = errores,
+            traceId = contexto.HttpContext.TraceIdentifier
+        };
+        
+        return new BadRequestObjectResult(respuesta);
+    };
+});
 builder.Services.AddSqlServer<DbSistemaGastosContext>(builder.Configuration.GetConnectionString("AppConnection"));
 builder.Services.AddCors(options =>
 {
@@ -53,6 +75,7 @@ builder.Services.AddAuthentication(opciones =>
 {
     opciones.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     opciones.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    
 }).AddJwtBearer(opciones =>
 {
     opciones.TokenValidationParameters = new TokenValidationParameters
@@ -65,6 +88,44 @@ builder.Services.AddAuthentication(opciones =>
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(llaveSecreta))
     };
+    
+    opciones.Events = new JwtBearerEvents
+    {
+        
+        OnChallenge = contexto =>
+        {
+            contexto.HandleResponse();
+            contexto.Response.StatusCode = 401;
+            contexto.Response.ContentType = "application/json";
+
+            var respuesta = new
+            {
+                codigo = 401,
+                mensaje = "No estás autorizado.",
+                detalles = new[] { "Debes iniciar sesión. El token no fue enviado, expiró o es inválido." },
+                traceId = contexto.HttpContext.TraceIdentifier
+            };
+
+            return contexto.Response.WriteAsJsonAsync(respuesta);
+        },
+        
+        OnForbidden = contexto =>
+        {
+            contexto.Response.StatusCode = 403;
+            contexto.Response.ContentType = "application/json";
+
+            var respuesta = new
+            {
+                codigo = 403,
+                mensaje = "Acceso denegado.",
+                detalles = new[] { "Tu usuario no tiene los permisos suficientes para realizar esta acción." },
+                traceId = contexto.HttpContext.TraceIdentifier
+            };
+
+            return contexto.Response.WriteAsJsonAsync(respuesta);
+        }
+    };
+    
 });
 
 var app = builder.Build();
@@ -90,6 +151,35 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+    
+    if (response.StatusCode >= 400 && !response.HasStarted && 
+        (string.IsNullOrEmpty(response.ContentType) || !response.ContentType.Contains("json")))
+    {
+        response.ContentType = "application/json";
+
+        var mensajeGenerico = response.StatusCode switch
+        {
+            404 => "El endpoint o recurso solicitado no existe.",
+            405 => "El método HTTP (GET/POST/PUT/DELETE) no está permitido en esta ruta.",
+            415 => "Formato no soportado. Verifica que el 'Content-Type' (JSON o Archivo) sea el correcto para esta acción.",
+            _ => "Ocurrió un error inesperado a nivel de servidor."
+        };
+
+        var respuesta = new
+        {
+            codigo = response.StatusCode,
+            mensaje = mensajeGenerico,
+            detalles = new List<string>(),
+            traceId = context.HttpContext.TraceIdentifier
+        };
+
+        await response.WriteAsJsonAsync(respuesta);
+    }
+});
+
 // Inyeccion de middlewares
 app.UseMiddleware<TrazaDePeticionesMiddleware>();
 app.UseMiddleware<RequestIdMiddleware>();
@@ -104,5 +194,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-// API usada para obtener la conversion de monedas: fxRatesAPI

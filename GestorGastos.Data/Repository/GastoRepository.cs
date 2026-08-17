@@ -37,13 +37,19 @@ public class GastoRepository : IGastoRepository
                 g.Activo);
     }
 
-    public async Task<IEnumerable<Gasto>> ObtenerPorUsuarioAsync(long idUsuario)
+    public async Task<IEnumerable<Gasto>> ObtenerPorUsuarioAsync(long idUsuario, bool incluirEliminados = false)
     {
-        return await _contexto.Gastos
+        IQueryable<Gasto> consulta = _contexto.Gastos
             .Where(g => g.UsuarioId == idUsuario && g.Activo)
             .Include(g => g.Categoria)
-            .Include(g => g.MetodoPago)
-            .ToListAsync();
+            .Include(g => g.MetodoPago);
+
+        if (!incluirEliminados)
+        {
+            consulta = consulta.Where(g => g.Activo == true);
+        }
+
+        return await consulta.ToListAsync();
     }
 
     public async Task<decimal> ObtenerTotalGastadoPorMesAsync(long idUsuario, int month, int year)

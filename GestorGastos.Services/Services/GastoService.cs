@@ -64,16 +64,17 @@ public class GastoService : IGastoService
         };
     }
 
-    public async Task<IEnumerable<RespuestaGastoDto>> ObtenerTodosGastosAsync(long idUsuario)
+    public async Task<IEnumerable<RespuestaGastoDto>> ObtenerTodosGastosAsync(long idUsuario, bool incluirEliminados = false)
     {
         
-        IEnumerable<Gasto> gastosDb = await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
+        IEnumerable<Gasto> gastosDb = await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario, incluirEliminados);
 
         return gastosDb.Select(g => new RespuestaGastoDto
         {
             Id = g.Id,
             Concepto = g.Concepto,
             Descripcion = g.Descripcion,
+            Activo = g.Activo,
             MontoFinal = g.MontoFinal,
             Fecha = g.Fecha,
             CategoriaId = g.CategoriaId,

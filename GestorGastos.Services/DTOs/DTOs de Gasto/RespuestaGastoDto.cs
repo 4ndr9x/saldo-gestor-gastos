@@ -5,6 +5,7 @@ public class RespuestaGastoDto
     public long Id { get; set; }
     public string Concepto { get; set; } = string.Empty;
     public string Descripcion { get; set; } = string.Empty;
+    public bool Activo { get; set; }
     public DateTime Fecha { get; set; }
     
     public long CategoriaId { get; set; }

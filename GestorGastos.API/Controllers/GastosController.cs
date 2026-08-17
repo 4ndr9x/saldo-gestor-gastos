@@ -32,10 +32,10 @@ public class GastosController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> ObtenerTodosLosGastos()
+    public async Task<IActionResult> ObtenerTodosLosGastos([FromQuery] bool incluirEliminados = false)
     {
         long idUsuario = ObtenerIdUsuario();
-        IEnumerable<RespuestaGastoDto> gastos = await _gastoService.ObtenerTodosGastosAsync(idUsuario);
+        IEnumerable<RespuestaGastoDto> gastos = await _gastoService.ObtenerTodosGastosAsync(idUsuario, incluirEliminados);
         
         return Ok(gastos);
     }

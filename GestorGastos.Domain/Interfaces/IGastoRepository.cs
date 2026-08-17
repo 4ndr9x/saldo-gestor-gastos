@@ -7,7 +7,7 @@ public interface IGastoRepository
     Task AgregarGastoAsync(Gasto gastoRecibido);
     Task AgregarRangoDeGastosAsync(IEnumerable<Gasto> gastosRecibidos);
     Task<Gasto?> BuscarPorIdAsync(long idGasto, long idUsuario);
-    Task<IEnumerable<Gasto>> ObtenerPorUsuarioAsync(long idUsuario);
+    Task<IEnumerable<Gasto>> ObtenerPorUsuarioAsync(long idUsuario, bool incluirEliminados = false);
     Task ActualizarGastoAsync(Gasto gastoRecibido);
     Task<decimal> ObtenerTotalGastadoPorMesAsync(long idUsuario, int month, int year);
     Task<decimal> ObtenerTotalGastadoPorCategoriaYMesAsync(long idUsuario, long idCategoria, int month, int year);

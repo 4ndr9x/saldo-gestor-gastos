@@ -78,7 +78,7 @@ public class UsuarioService : IUsuarioService
 
         string tokenString = new JwtSecurityTokenHandler().WriteToken(opcionesToken);
 
-        return new RespuestaAuthDto {Token = tokenString, NombreUsuario = usuarioDb.Nombre, Email = usuarioDb.Email};
+        return new RespuestaAuthDto {Token = tokenString, NombreUsuario = usuarioDb.Nombre, Email = usuarioDb.Email, MonedaUsada = usuarioDb.MonedaUsada};
     }
 
     public async Task ActualizarMonedaUsadaAsync(long idUsuario, ActualizarMonedaUsadaDto monedaRecibida)
