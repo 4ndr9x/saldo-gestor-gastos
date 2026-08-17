@@ -26,6 +26,11 @@ public class PresupuestoService : IPresupuestoService
         {
             throw new NoEncontradoExcepcion("La categoría que has intentado buscar no existe.");
         }
+
+        if (presupuestoRecibido.Month > 12|| presupuestoRecibido.Month < 1)
+        {
+            throw new DatosErroneosExcepcion("Ocurrio un error con la informacion enviada.", new List<string>{"El mes debe estar entre 1 y 12."});
+        }
         
         var presupuestoExistente = await _presupuestoRepositorio
             .ObtenerPresupuestoPorMesYCategoriaAsync(idUsuario, presupuestoRecibido.CategoriaId, presupuestoRecibido.Month, presupuestoRecibido.Year);

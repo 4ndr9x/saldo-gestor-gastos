@@ -31,7 +31,12 @@ public class UsuarioService : IUsuarioService
     
     public async Task<long> RegistrarUsuarioAsync(RegistroDto usuarioRecibido)
     {
-        await ObtenerUsuarioPorEmailAsync(usuarioRecibido.Email);
+        Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorEmailAsync(usuarioRecibido.Email);
+        
+        if (usuarioDb != null)
+        {
+            throw new NoEncontradoExcepcion("El usuario que se ha intentado buscar no existe.");
+        }
 
         string hashPassword = BCrypt.Net.BCrypt.HashPassword(usuarioRecibido.Password);
 

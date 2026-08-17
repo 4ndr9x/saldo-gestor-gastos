@@ -12,9 +12,20 @@ using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddRouting(opciones => opciones.LowercaseUrls = true);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 builder.Services.AddSqlServer<DbSistemaGastosContext>(builder.Configuration.GetConnectionString("AppConnection"));
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("Frontend",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        });
+});
 
 // Inyecciones de dependencias
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
@@ -85,6 +96,7 @@ app.UseMiddleware<RequestIdMiddleware>();
 app.UseMiddleware<GestorErroresMiddleware>();
 
 app.UseHttpsRedirection();
+app.UseCors("Frontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
