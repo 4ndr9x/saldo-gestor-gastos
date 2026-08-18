@@ -28,9 +28,11 @@ public class ReportesController : ControllerBase
         
         long idUsuario = ObtenerIdUsuario();
         
-        ReporteMensualDto reporte = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
+        ReporteMensualDto reporteCreado = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
 
-        return Ok(reporte);
+        reporteCreado.MonthString = ConvertirMesATexto(reporteCreado.Month);
+        
+        return Ok(reporteCreado);
     }
     
     [HttpGet("mensual/exportar/txt")]
@@ -39,9 +41,11 @@ public class ReportesController : ControllerBase
         long idUsuario = ObtenerIdUsuario();
         var (monthValido, yearValido) = ValidarFecha(month, year);
 
-        var reporteRecibido = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
-    
-        var archivoBytes = _exportacionService.GenerarReporteTxt(reporteRecibido);
+        var reporteCreado = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
+        
+        reporteCreado.MonthString = ConvertirMesATexto(reporteCreado.Month);
+        
+        var archivoBytes = _exportacionService.GenerarReporteTxt(reporteCreado);
 
         return File(archivoBytes, "text/plain", $"Reporte_gastos_{monthValido}_{yearValido}.txt");
     }
@@ -52,9 +56,11 @@ public class ReportesController : ControllerBase
         long idUsuario = ObtenerIdUsuario();
         var (mesValido, anioValido) = ValidarFecha(month, year);
         
-        var reporteRecibido = await _reporteService.GenerarReporteMensualAsync(idUsuario, mesValido, anioValido);
+        var reporteCreado = await _reporteService.GenerarReporteMensualAsync(idUsuario, mesValido, anioValido);
         
-        var archivoBytes = _exportacionService.GenerarReporteJson(reporteRecibido);
+        reporteCreado.MonthString = ConvertirMesATexto(reporteCreado.Month);
+        
+        var archivoBytes = _exportacionService.GenerarReporteJson(reporteCreado);
 
         return File(archivoBytes, "application/json", $"Reporte_{mesValido}_{anioValido}.json");
     }
@@ -65,9 +71,11 @@ public class ReportesController : ControllerBase
         long idUsuario = ObtenerIdUsuario();
         var (monthValido, yearValido) = ValidarFecha(month, year);
         
-        var reporteRecibido = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
+        var reporteCreado = await _reporteService.GenerarReporteMensualAsync(idUsuario, monthValido, yearValido);
         
-        var archivoBytes = _exportacionService.GenerarReporteExcel(reporteRecibido);
+        reporteCreado.MonthString = ConvertirMesATexto(reporteCreado.Month);
+        
+        var archivoBytes = _exportacionService.GenerarReporteExcel(reporteCreado);
         
         return File(
             archivoBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Reporte_gastos_{monthValido}_{yearValido}.xlsx");
@@ -110,5 +118,39 @@ public class ReportesController : ControllerBase
         }
 
         return new (month.Value, year.Value);
+    }
+    
+    private string ConvertirMesATexto(int mes)
+    {
+        switch (mes)
+        {
+            case 1:
+                return "Enero";
+            case 2:
+                return "Febrero";
+            case 3:
+                return "Marzo";
+            case 4:
+                return "Abril";
+            case 5:
+                return "Mayo";
+            case 6:
+                return "Junio";
+            case 7:
+                return "Julio";
+            case 8:
+                return "Agosto";
+            case 9:
+                return "Septiembre";
+            case 10:
+                return "Octubre";
+            case 11:
+                return "Noviembre";
+            case 12:
+                return "Diciembre";
+            default:
+                return "Mes inexistente";
+        }
+        
     }
 }

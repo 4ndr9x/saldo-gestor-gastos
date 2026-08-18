@@ -13,12 +13,11 @@ public class ExportacionService : IExportacionService
     {
         var sb = new StringBuilder();
         
-
         sb.AppendLine($"Generado por: {reporteRecibido.NombreUsuario}");
         sb.AppendLine($"Moneda del reporte: {reporteRecibido.Moneda}");
         sb.AppendLine("----------------------------------------");
         sb.AppendLine("========================================");
-        sb.AppendLine($" REPORTE DE GASTOS: MES {reporteRecibido.Month} - AÑO {reporteRecibido.Year}");
+        sb.AppendLine($" REPORTE DE GASTOS: MES {reporteRecibido.MonthString} - AÑO {reporteRecibido.Year}");
         sb.AppendLine("========================================");
         sb.AppendLine($"Total Gastado: {reporteRecibido.TotalGastado:C}");
         sb.AppendLine($"Total Mes Anterior: {reporteRecibido.TotalMesAnterior:C}");
@@ -66,7 +65,7 @@ public class ExportacionService : IExportacionService
         worksheet.Cell(4, 2).Value = reporteRecibido.Moneda;
         
         worksheet.Cell(6, 1).Value = "Mes:";
-        worksheet.Cell(6, 2).Value = reporteRecibido.Month;
+        worksheet.Cell(6, 2).Value = reporteRecibido.MonthString;
         worksheet.Cell(6, 2).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Left;
 
         worksheet.Cell(7, 1).Value = "Año:";

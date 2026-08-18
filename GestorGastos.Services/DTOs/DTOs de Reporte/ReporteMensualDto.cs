@@ -3,6 +3,7 @@ namespace GestorGastos.Services.DTOs.DTOs_de_Reporte;
 public class ReporteMensualDto
 {
     public int Month { get; set; }
+    public string MonthString { get; set; } = string.Empty;
     public int Year { get; set; }
     public decimal TotalGastado { get; set; }
     public decimal TotalMesAnterior { get; set; }
