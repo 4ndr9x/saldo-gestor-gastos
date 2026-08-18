@@ -400,6 +400,12 @@ public class GastoService : IGastoService
             resultado.GastosImportadosExitosamente = gastosValidosParaGuardar.Count;
         }
         
+        int filasUsadas = worksheet.RowsUsed().Count();
+        if (filasUsadas <= 1) 
+        {
+            throw new DatosErroneosExcepcion("El archivo de Excel no contiene registros para importar.", new List<string>());
+        }
+        
         if (resultado.FilasConErrores > 0)
         {
             List<string> listaErroresFormateados = resultado.DetallesErrores

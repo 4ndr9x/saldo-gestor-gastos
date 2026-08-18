@@ -76,11 +76,15 @@ public class UsuarioController : ControllerBase
         long idUsuario = ObtenerIdUsuario();
         string? correo = User.FindFirstValue(ClaimTypes.Email); 
         string? nombre = User.FindFirstValue(ClaimTypes.Name);
+
+        var monedaClaim = User.Claims.FirstOrDefault(c => c.Type == "monedaUsada");
+        string monedaUsada = monedaClaim != null ? monedaClaim.Value : "DOP";
         
         RespuestaPerfilDto respuestaPerfil = new RespuestaPerfilDto();
         respuestaPerfil.Id = idUsuario;
         respuestaPerfil.Email = correo;
         respuestaPerfil.Nombre = nombre;
+        respuestaPerfil.MonedaUsada = monedaUsada;
 
         return Ok(respuestaPerfil);
     }

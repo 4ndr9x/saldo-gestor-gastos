@@ -117,22 +117,23 @@ public class GastosController : ControllerBase
     private IFormFile ValidarExcelEnviado(IFormFile? archivo)
     {
         List<string> detalles = new List<string>();
-        if (archivo == null)
+        if (archivo == null || archivo.Length == 0)
         {
-            detalles.Add("No se envió ningún archivo.");
-            throw new DatosErroneosExcepcion("Ocurrio un error con el archivo enviado.", detalles);
+            detalles.Add("No se envió ningún archivo o el archivo está corrupto (0 bytes).");
+            throw new DatosErroneosExcepcion("Ocurrió un error con el archivo enviado.", detalles);
         }
         
         if (Path.GetExtension(archivo.FileName).ToLower() != ".xlsx")
         {
             detalles.Add("El formato del archivo no es válido. Solo se aceptan archivos .xlsx");
         }
-
-        if (archivo.Length == 0)
+        
+        const long longitudMaximaArchivo = 10 * 1024 * 1024;
+        if (archivo.Length > longitudMaximaArchivo)
         {
-            detalles.Add(" El archivo enviado está vacío.");
+            detalles.Add("El archivo es demasiado grande. El límite máximo es 10 MB.");
         }
-
+        
         if (detalles.Any())
         {
             throw new DatosErroneosExcepcion("Ocurrio un error con el archivo enviado.", detalles);

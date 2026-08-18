@@ -67,7 +67,8 @@ public class UsuarioService : IUsuarioService
         {
             new Claim(ClaimTypes.NameIdentifier, usuarioDb.Id.ToString()),
             new Claim(ClaimTypes.Email, usuarioDb.Email),
-            new Claim(ClaimTypes.Name, usuarioDb.Nombre)
+            new Claim(ClaimTypes.Name, usuarioDb.Nombre),
+            new Claim("monedaUsada", usuarioDb.MonedaUsada)
         };
 
         var opcionesToken = new JwtSecurityToken(issuer: _configuracion["JwtSettings:Issuer"],
