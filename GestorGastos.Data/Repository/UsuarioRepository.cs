@@ -16,12 +16,12 @@ public class UsuarioRepository : IUsuarioRepository
 
     public async Task<Usuario?> BuscarUsuarioPorEmailAsync(string email)
     {
-        return _contexto.Usuarios.FirstOrDefault(u => u.Email == email);
+        return _contexto.Usuarios.FirstOrDefault(u => u.Email == email && u.Activo);
     }
 
     public async Task<Usuario?> BuscarUsuarioPorIdAsync(long idUsuario)
     {
-        return _contexto.Usuarios.FirstOrDefault(u => u.Id == idUsuario);
+        return _contexto.Usuarios.FirstOrDefault(u => u.Id == idUsuario && u.Activo);
     }
 
     public async Task ActualizarUsuarioAsync(Usuario usuarioRecibido)

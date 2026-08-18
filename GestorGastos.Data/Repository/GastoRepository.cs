@@ -40,7 +40,7 @@ public class GastoRepository : IGastoRepository
     public async Task<IEnumerable<Gasto>> ObtenerPorUsuarioAsync(long idUsuario, bool incluirEliminados = false)
     {
         IQueryable<Gasto> consulta = _contexto.Gastos
-            .Where(g => g.UsuarioId == idUsuario && g.Activo)
+            .Where(g => g.UsuarioId == idUsuario)
             .Include(g => g.Categoria)
             .Include(g => g.MetodoPago);
 
