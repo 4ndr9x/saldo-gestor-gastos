@@ -12,4 +12,5 @@ public interface IGastoRepository
     Task<decimal> ObtenerTotalGastadoPorMesAsync(long idUsuario, int month, int year);
     Task<decimal> ObtenerTotalGastadoPorCategoriaYMesAsync(long idUsuario, long idCategoria, int month, int year);
     Task<List<(string NombreCategoria, decimal TotalGastado)>> ObtenerTopCategoriasDelMesAsync(long idUsuario, int month, int year, int cantidad = 5);
+    Task ActualizarGastosMasivoAsync(IEnumerable<Gasto> gastosRecibidos);
 }

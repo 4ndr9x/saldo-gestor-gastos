@@ -39,7 +39,7 @@ public class UsuarioController : ControllerBase
     {
         long idUsuario = ObtenerIdUsuario();
 
-        await _usuarioService.ActualizarPerfilAsync(idUsuario, usuarioRecibido);
+        await _usuarioService.ActualizarNombreAsync(idUsuario, usuarioRecibido);
         return Ok(new { mensaje = "Tu perfil ha sido actualizado correctamente." });
     }
     
@@ -71,20 +71,11 @@ public class UsuarioController : ControllerBase
     }
     
     [HttpGet("perfil")]
-    public IActionResult ObtenerMiPerfil()
+    public async Task<IActionResult> ObtenerMiPerfil()
     {
         long idUsuario = ObtenerIdUsuario();
-        string? correo = User.FindFirstValue(ClaimTypes.Email); 
-        string? nombre = User.FindFirstValue(ClaimTypes.Name);
 
-        var monedaClaim = User.Claims.FirstOrDefault(c => c.Type == "monedaUsada");
-        string monedaUsada = monedaClaim != null ? monedaClaim.Value : "DOP";
-        
-        RespuestaPerfilDto respuestaPerfil = new RespuestaPerfilDto();
-        respuestaPerfil.Id = idUsuario;
-        respuestaPerfil.Email = correo;
-        respuestaPerfil.Nombre = nombre;
-        respuestaPerfil.MonedaUsada = monedaUsada;
+        RespuestaPerfilDto respuestaPerfil = await _usuarioService.ObtenerMiPerfil(idUsuario);
 
         return Ok(respuestaPerfil);
     }

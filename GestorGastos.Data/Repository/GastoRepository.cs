@@ -103,4 +103,10 @@ public class GastoRepository : IGastoRepository
         await _contexto.SaveChangesAsync();
     }
     
+    public async Task ActualizarGastosMasivoAsync(IEnumerable<Gasto> gastosRecibidos)
+    {
+        _contexto.Gastos.UpdateRange(gastosRecibidos);
+        await _contexto.SaveChangesAsync();
+    }
+    
 }

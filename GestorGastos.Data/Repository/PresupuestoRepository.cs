@@ -64,4 +64,10 @@ public class PresupuestoRepository : IPresupuestoRepository
                 p.Activo)
             .ToListAsync();
     }
+
+    public async Task ActualizarPresupuestosMasivoAsync(IEnumerable<Presupuesto> presupuestosRecibidos)
+    {
+        _contexto.Presupuestos.UpdateRange(presupuestosRecibidos);
+        await _contexto.SaveChangesAsync();
+    }
 }

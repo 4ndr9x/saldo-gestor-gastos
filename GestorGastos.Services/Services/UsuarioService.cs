@@ -89,12 +89,12 @@ public class UsuarioService : IUsuarioService
         
         string monedaAnterior = usuarioDb.MonedaUsada;
         
-        if (monedaAnterior == nuevaMoneda)
+        if (monedaAnterior.Equals(nuevaMoneda, StringComparison.OrdinalIgnoreCase))
         {
             throw new ConflictoExcepcion("La moneda a la que intentaste cambiar es la misma ya asignada.");
         }
         
-        var gastos = await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario);
+        var gastos = (await _gastoRepositorio.ObtenerPorUsuarioAsync(idUsuario)).ToList();
         var cacheTasas = new Dictionary<string, decimal>(StringComparer.OrdinalIgnoreCase);
 
         foreach (var gasto in gastos)
@@ -106,27 +106,36 @@ public class UsuarioService : IUsuarioService
             }
             
             gasto.RecalcularConversionMoneda(tasaGastoANueva);
-    
-            await _gastoRepositorio.ActualizarGastoAsync(gasto);
         }
+
+        await _gastoRepositorio.ActualizarGastosMasivoAsync(gastos);
         
-        var presupuestos = await _presupuestoRepositorio.ObtenerTodosPorIdAsync(idUsuario);
+        var presupuestos = (await _presupuestoRepositorio.ObtenerTodosPorIdAsync(idUsuario)).ToList();
         
         decimal tasaViejaANueva = await _tasaCambioService.ObtenerTasaCambioAsync(monedaAnterior, nuevaMoneda);
 
         foreach (var presupuesto in presupuestos)
         {
             presupuesto.CambiarMontoMaximo(presupuesto.MontoMaximo * tasaViejaANueva);
-            await _presupuestoRepositorio.ActualizarPresupuestoAsync(presupuesto);
         }
+
+        await _presupuestoRepositorio.ActualizarPresupuestosMasivoAsync(presupuestos);
         
         usuarioDb.CambiarMonedaUsada(nuevaMoneda);
         await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
     }
 
-    public async Task ActualizarPerfilAsync(long idUsuario, ActualizarPerfilDto usuarioRecibido)
+    public async Task ActualizarNombreAsync(long idUsuario, ActualizarPerfilDto usuarioRecibido)
     {
         Usuario usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
+        
+        if (usuarioDb.Nombre.Trim().Equals(usuarioRecibido.Nombre.Trim(), StringComparison.OrdinalIgnoreCase))
+        {
+            throw new DatosErroneosExcepcion(
+                "Ocurrió un error con la información enviada.", 
+                new List<string> { "El nuevo nombre debe ser diferente al actual." }
+            );
+        }
 
         usuarioDb.CambiarNombre(usuarioRecibido.Nombre);
         await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
@@ -145,6 +154,14 @@ public class UsuarioService : IUsuarioService
             throw new DatosErroneosExcepcion("La contraseña no es correcta.", detalles);
         }
 
+        if (usuarioRecibido.PasswordActual == usuarioRecibido.PasswordNuevo)
+        {
+            throw new DatosErroneosExcepcion(
+                "Ocurrió un error con la información enviada.",
+                new List<string> { "La nueva contraseña no puede ser igual a la actual." }
+            );
+        }
+
         string passwordNuevoEncriptado = BCrypt.Net.BCrypt.HashPassword(usuarioRecibido.PasswordNuevo);
         
         usuarioDb.CambiarPasswordHash(passwordNuevoEncriptado);
@@ -160,7 +177,21 @@ public class UsuarioService : IUsuarioService
         usuarioDb.CambiarEstado(false);
         await _usuarioRepositorio.ActualizarUsuarioAsync(usuarioDb);
     }
-    
+
+    public async Task<RespuestaPerfilDto> ObtenerMiPerfil(long idUsuario)
+    {
+        Usuario usuarioDb = await ObtenerUsuarioPorIdAsync(idUsuario);
+
+        return new RespuestaPerfilDto
+        {
+            Id = usuarioDb.Id,
+            Email = usuarioDb.Email,
+            MonedaUsada = usuarioDb.MonedaUsada,
+            Nombre = usuarioDb.Nombre
+        };
+
+    }
+
     private async Task<Usuario> ObtenerUsuarioPorIdAsync(long idUsuario)
     {
         Usuario? usuarioDb = await _usuarioRepositorio.BuscarUsuarioPorIdAsync(idUsuario);
