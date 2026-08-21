@@ -394,12 +394,6 @@ public class GastoService : IGastoService
             numeroFilaActual++;
         }
 
-        if (gastosValidosParaGuardar.Any())
-        {
-            await _gastoRepositorio.AgregarRangoDeGastosAsync(gastosValidosParaGuardar);
-            resultado.GastosImportadosExitosamente = gastosValidosParaGuardar.Count;
-        }
-        
         int filasUsadas = worksheet.RowsUsed().Count();
         if (filasUsadas <= 1) 
         {
@@ -413,9 +407,18 @@ public class GastoService : IGastoService
                 .ToList();
 
             throw new DatosErroneosExcepcion(
-                $"El archivo contiene errores en {resultado.FilasConErrores} fila(s) y la importación fue abortada.", 
+                $"El archivo contiene errores en {resultado.FilasConErrores} fila(s) y la importación fue abortada.",
                 listaErroresFormateados
             );
+        }
+
+        if (gastosValidosParaGuardar.Any())
+        {
+            await _gastoRepositorio
+                .AgregarRangoDeGastosAsync(gastosValidosParaGuardar);
+
+            resultado.GastosImportadosExitosamente =
+                gastosValidosParaGuardar.Count;
         }
 
         return resultado;
