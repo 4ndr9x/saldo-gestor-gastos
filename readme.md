@@ -480,7 +480,7 @@ Saldo fue desarrollado como un sistema completo de gestión de gastos personales
 
 Código fuente:
 
-`https://github.com/4ndr9x/Sistema-Gestor-De-Gastos`
+`https://github.com/4ndr9x/saldo-gestor-gastos.git`
 
 ---
 
