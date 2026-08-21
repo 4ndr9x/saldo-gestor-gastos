@@ -284,13 +284,13 @@ dotnet tool install --global dotnet-ef
 ### 1. Clonar el repositorio
 
 ```bash
-git clone https://github.com/4ndr9x/Sistema-Gestor-De-Gastos.git
+git clone https://github.com/4ndr9x/saldo-gestor-gastos.git
 ```
 
 Accede al directorio del proyecto:
 
 ```bash
-cd Sistema-Gestor-De-Gastos
+cd saldo-gestor-gastos
 ```
 
 ### 2. Restaurar dependencias
