@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saldo — Reportes</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/estiloLogin.css">
+<link rel="stylesheet" href="../css/estiloDashboard.css">
+<link rel="stylesheet" href="../css/estiloReportes.css">
+
+<script>
+  (function guardInmediato(){
+    const token = localStorage.getItem('gestor_gastos_token') || sessionStorage.getItem('gestor_gastos_token');
+    if(!token){
+      window.location.replace('../pages/login.html');
+    }
+  })();
+</script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div>
+      <div class="brand-mark">
+        <div class="glyph">S</div>
+        <span>Saldo</span>
+      </div>
+
+      <ul class="nav-list" style="margin-top:28px;">
+        <li><a href="dashboard.html">Resumen</a></li>
+        <li><a href="gastos.html">Gastos</a></li>
+        <li><a href="catalogos.html">Catálogos</a></li>
+        <li><a href="reportes.html" class="active">Reportes</a></li>
+        <li><a href="presupuestos.html">Presupuestos</a></li>
+        <li><a href="importacion.html">Importar gastos</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-foot sidebar-foot-acciones">
+      <a href="perfil.html" class="logout-btn">Mi Cuenta</a>
+      <button class="logout-btn" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="main-header">
+      <div>
+        <h1>Reportes</h1>
+        <p class="fecha" id="subtituloPeriodo"></p>
+      </div>
+    </div>
+
+    <section class="reportes-controles">
+      <div class="periodo-selectores">
+        <div class="field">
+          <label for="selectorMes">Mes</label>
+          <select id="selectorMes">
+            <option value="1">Enero</option>
+            <option value="2">Febrero</option>
+            <option value="3">Marzo</option>
+            <option value="4">Abril</option>
+            <option value="5">Mayo</option>
+            <option value="6">Junio</option>
+            <option value="7">Julio</option>
+            <option value="8">Agosto</option>
+            <option value="9">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="selectorAnio">Año</label>
+          <select id="selectorAnio"></select>
+        </div>
+      </div>
+
+      <div class="exportar-acciones">
+        <button type="button" class="btn-secondary" id="btnExportarTxt">
+          <span class="spinner"></span>
+          <span class="btn-label">Exportar a TXT</span>
+        </button>
+        <button type="button" class="btn-secondary" id="btnExportarExcel">
+          <span class="spinner"></span>
+          <span class="btn-label">Exportar a Excel</span>
+        </button>
+        <button type="button" class="btn-secondary" id="btnExportarJson">
+          <span class="spinner"></span>
+          <span class="btn-label">Exportar a JSON</span>
+        </button>
+      </div>
+    </section>
+
+    <div class="banner" id="reportesBanner"></div>
+
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Total gastado</div>
+        <div class="value skeleton" id="valTotalGastado">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Mes anterior</div>
+        <div class="value skeleton" id="valMesAnterior">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Diferencia</div>
+        <div class="value skeleton" id="valDiferencia">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Categoría con mayor gasto</div>
+        <div class="value skeleton texto-card" id="valCategoriaMayor">—</div>
+      </div>
+    </section>
+
+    <div class="comparacion-callout" id="comparacionCallout" style="display:none;"></div>
+
+    <section class="section-card tabla-card">
+      <div class="section-header">
+        <h2>Desglose por categoría</h2>
+      </div>
+      <div id="desgloseContenedor" class="tabla-scroll">
+        <div class="estado-vacio">Cargando el reporte...</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script src="../js/scriptComun.js"></script>
+<script src="../js/scriptReportes.js"></script>
+
+</body>
+</html>

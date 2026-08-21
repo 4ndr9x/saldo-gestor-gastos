@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saldo — Dashboard</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/estiloLogin.css">
+<link rel="stylesheet" href="../css/estiloDashboard.css">
+
+<script>
+  (function guardInmediato(){
+    const token = localStorage.getItem('gestor_gastos_token') || sessionStorage.getItem('gestor_gastos_token');
+    if(!token){
+      window.location.replace('login.html');
+    }
+  })();
+</script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand-mark">
+        <div class="glyph">S</div>
+        <span>Saldo</span>
+      </div>
+
+      <ul class="nav-list" style="margin-top:28px;">
+        <li><a href="dashboard.html" class="active">Resumen</a></li>
+        <li><a href="gastos.html">Gastos</a></li>
+        <li><a href="catalogos.html">Catálogos</a></li>
+        <li><a href="reportes.html">Reportes</a></li>
+        <li><a href="presupuestos.html">Presupuestos</a></li>
+        <li><a href="importacion.html">Importar gastos</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-foot sidebar-foot-acciones">
+      <a href="perfil.html" class="logout-btn">Mi Cuenta</a>
+      <button class="logout-btn" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ============ CONTENIDO PRINCIPAL ============ -->
+  <main class="main">
+
+    <div class="main-header">
+      <div>
+        <h1 id="saludoUsuario">Hola</h1>
+        <p class="fecha" id="fechaHoy"></p>
+      </div>
+      
+      <button class="btn-primary" id="btnAbrirModal">
+        + Agregar gasto
+      </button>
+      
+    </div>
+
+    <!-- ---------- Tarjetas de resumen ---------- -->
+    <section class="summary-grid">
+      <div class="summary-card">
+        <div class="label">Gastado este mes</div>
+        <div class="value skeleton" id="valTotalMes">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Promedio diario</div>
+        <div class="value skeleton" id="valPromedio">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Gasto más alto</div>
+        <div class="value skeleton" id="valMasAlto">—</div>
+      </div>
+      <div class="summary-card">
+        <div class="label">Registros totales</div>
+        <div class="value skeleton" id="valCantidad">—</div>
+      </div>
+    </section>
+
+    <!-- ---------- Gastos recientes ---------- -->
+    <div class="content-grid">
+
+    <!-- Columna Izquierda: Tu código intacto de Gastos Recientes -->
+    <section class="section-card">
+        <div class="section-header">
+            <h2>Gastos recientes</h2>
+        </div>
+        <div id="listaGastos">
+            <div class="estado-vacio">Cargando tus gastos...</div>
+        </div>
+    </section>
+
+    <!-- Columna Derecha: La nueva tarjeta del Gráfico -->
+    <section class="section-card">
+        <div class="section-header">
+            <h2>Por Categoría</h2>
+        </div>
+        <div style="position: relative; height: 280px; width: 100%;">
+            <canvas id="graficoCategorias"></canvas>
+        </div>
+    </section>
+
+</div>
+<!-- 👆 FIN DEL CONTENEDOR GRID 👆 -->
+  </main>  
+</div>
+
+<!-- ============ MODAL: AGREGAR GASTO ============ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <h2 id="modalTitulo">Agregar gasto</h2>
+
+    <div class="banner" id="gastoBanner"></div>
+
+    <form id="formGasto" class="active" novalidate>
+      <input type="hidden" id="gastoId" value="">
+
+      <div class="field" style="margin-bottom:14px;">
+        <label for="gastoConcepto">Concepto</label>
+        <input type="text" id="gastoConcepto" name="concepto" required>
+        <span class="field-error" id="errGastoConcepto"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label for="gastoDescripcion">Nota (opcional)</label>
+        <input type="text" id="gastoDescripcion" name="descripcion">
+        <span class="field-error" id="errGastoDescripcion"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label for="gastoCategoria">Categoría</label>
+        <select id="gastoCategoria" name="categoriaId" required>
+          <option value="">Cargando categorías...</option>
+        </select>
+        <span class="field-error" id="errGastoCategoria"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label for="gastoMetodoPago">Método de pago</label>
+        <select id="gastoMetodoPago" name="metodoPagoId" required>
+          <option value="">Cargando métodos de pago...</option>
+        </select>
+        <span class="field-error" id="errGastoMetodoPago"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label for="gastoMonto">Monto</label>
+        <input type="number" id="gastoMonto" name="monto" min="0" step="0.01" required>
+        <span class="field-error" id="errGastoMonto"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:14px;">
+        <label for="gastoMoneda">Moneda</label>
+        <select id="gastoMoneda" name="moneda" required>
+          <option value="DOP">DOP — Peso dominicano</option>
+          <option value="USD">USD — Dólar estadounidense</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="AUD">AUD — Dólar australiano</option>
+          <option value="MXN">MXN — Peso mexicano</option>
+          <option value="COP">COP — Peso colombiano</option>
+          <option value="ARS">ARS — Peso argentino</option>
+          <option value="GBP">GBP — Libra esterlina</option>
+          <option value="CAD">CAD — Dólar canadiense</option>
+        </select>
+        <span class="field-error" id="errGastoMoneda"></span>
+      </div>
+
+      <div class="field" style="margin-bottom:20px;">
+        <label for="gastoFecha">Fecha y hora</label>
+        <input type="datetime-local" id="gastoFecha" name="fecha" required>
+        <span class="field-error" id="errGastoFecha"></span>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnCancelarModal">
+          Cancelar
+        </button>
+
+        <button type="submit" class="btn-primary" id="btnGuardarGasto">
+          <span class="spinner"></span>
+          <span class="btn-label">Guardar</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/scriptComun.js"></script>
+<script src="../js/scriptDashboard.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saldo — Mi Cuenta</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/estiloLogin.css">
+<link rel="stylesheet" href="../css/estiloDashboard.css">
+<link rel="stylesheet" href="../css/estiloPerfil.css">
+
+<script>
+  (function guardInmediato(){
+    const token = localStorage.getItem('gestor_gastos_token') || sessionStorage.getItem('gestor_gastos_token');
+    if(!token){
+      window.location.replace('../pages/login.html');
+    }
+  })();
+</script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <aside class="sidebar">
+    <div>
+      <div class="brand-mark">
+        <div class="glyph">S</div>
+        <span>Saldo</span>
+      </div>
+
+      <ul class="nav-list" style="margin-top:28px;">
+        <li><a href="dashboard.html">Resumen</a></li>
+        <li><a href="gastos.html">Gastos</a></li>
+        <li><a href="catalogos.html">Catálogos</a></li>
+        <li><a href="reportes.html">Reportes</a></li>
+        <li><a href="presupuestos.html">Presupuestos</a></li>
+        <li><a href="importacion.html">Importar</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-foot sidebar-foot-acciones">
+      <a href="perfil.html" class="logout-btn">Mi Cuenta</a>
+      <button class="logout-btn" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <div class="main-header">
+      <div>
+        <h1>Mi Cuenta</h1>
+        <p class="fecha">Administra tus datos personales, preferencias y seguridad.</p>
+      </div>
+    </div>
+
+    <div class="perfil-grid">
+
+      <section class="section-card">
+        <div class="section-header">
+          <h2>Datos personales</h2>
+        </div>
+
+        <div class="banner" id="bannerNombre"></div>
+
+        <form id="formNombre" novalidate>
+          <div class="field" style="margin-bottom:16px;">
+            <label for="perfilNombre">Nombre</label>
+            <input type="text" id="perfilNombre" name="nombre" required>
+            <span class="field-error" id="errPerfilNombre"></span>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnActualizarNombre">
+            <span class="spinner"></span>
+            <span class="btn-label">Actualizar Nombre</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="section-card">
+        <div class="section-header">
+          <h2>Preferencias</h2>
+        </div>
+
+        <div class="banner" id="bannerMoneda"></div>
+
+        <form id="formMoneda" novalidate>
+          <div class="field" style="margin-bottom:16px;">
+            <label for="perfilMoneda">Moneda</label>
+            <select id="perfilMoneda" name="moneda" required>
+              <option value="DOP">DOP — Peso dominicano</option>
+              <option value="USD">USD — Dólar estadounidense</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="AUD">AUD — Dólar australiano</option>
+              <option value="MXN">MXN — Peso mexicano</option>
+              <option value="COP">COP — Peso colombiano</option>
+              <option value="ARS">ARS — Peso argentino</option>
+              <option value="GBP">GBP — Libra esterlina</option>
+              <option value="CAD">CAD — Dólar canadiense</option>
+            </select>
+            <span class="field-error" id="errPerfilMoneda"></span>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnActualizarMoneda">
+            <span class="spinner"></span>
+            <span class="btn-label">Actualizar Moneda</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="section-card">
+        <div class="section-header">
+          <h2>Seguridad</h2>
+        </div>
+
+        <div class="banner" id="bannerPassword"></div>
+
+        <form id="formPassword" novalidate>
+          <div class="field" style="margin-bottom:14px;">
+            <label for="passwordActual">Contraseña actual</label>
+            <input type="password" id="passwordActual" name="passwordActual" autocomplete="current-password" required>
+            <span class="field-error" id="errPasswordActual"></span>
+          </div>
+
+          <div class="field" style="margin-bottom:14px;">
+            <label for="passwordNuevo">Nueva contraseña</label>
+            <input type="password" id="passwordNuevo" name="passwordNuevo" autocomplete="new-password" required>
+            <span class="field-error" id="errPasswordNuevo"></span>
+          </div>
+
+          <div class="field" style="margin-bottom:16px;">
+            <label for="passwordConfirmar">Confirmar nueva contraseña</label>
+            <input type="password" id="passwordConfirmar" name="passwordConfirmar" autocomplete="new-password" required>
+            <span class="field-error" id="errPasswordConfirmar"></span>
+          </div>
+
+          <button type="submit" class="btn-primary" id="btnCambiarPassword">
+            <span class="spinner"></span>
+            <span class="btn-label">Cambiar Contraseña</span>
+          </button>
+        </form>
+      </section>
+
+      <section class="section-card zona-peligro">
+        <div class="section-header">
+          <h2>Zona de peligro</h2>
+        </div>
+
+        <p class="zona-peligro-texto">
+          Eliminar tu cuenta borrará permanentemente tus datos, gastos y categorías.
+          Esta acción no se puede deshacer.
+        </p>
+
+        <button type="button" class="btn-peligro" id="btnEliminarCuenta">
+          <span class="spinner"></span>
+          <span class="btn-label">Eliminar Cuenta</span>
+        </button>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script src="../js/scriptComun.js"></script>
+<script src="../js/scriptPerfil.js"></script>
+
+</body>
+</html>

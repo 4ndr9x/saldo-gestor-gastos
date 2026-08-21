@@ -1,0 +1,238 @@
+/* ---------- Colores de nivel (no dependen de --accent porque
+   representan semáforo de consumo, no la marca de la app) ---------- */
+:root{
+  --nivel-bajo:        #2f7a5d;
+  --nivel-bajo-bg:      #e8f5ef;
+  --nivel-medio:        #b8860b;
+  --nivel-medio-bg:     #fdf3d8;
+  --nivel-alto:         #c96a1f;
+  --nivel-alto-bg:      #fdead9;
+  --nivel-excedido:     #b3261e;
+  --nivel-excedido-bg:  #fbe6e4;
+}
+
+/* ---------- Controles: mes + agregar (mismo patrón visual que
+   .reportes-controles / .filtros-bar del resto de la app) ---------- */
+.presupuestos-controles{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:14px;
+  background:var(--paper-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 18px;
+  margin-bottom:20px;
+}
+
+.presupuestos-controles .field{
+  min-width:150px;
+  margin-bottom:0;
+}
+
+.presupuestos-controles .field label{
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-muted);
+  margin-bottom:4px;
+  display:block;
+}
+
+.presupuestos-controles input[type="month"]{
+  width:auto;
+  border:1px solid var(--border);
+  border-radius:9px;
+  padding:9px 13px;
+  font-size:13.5px;
+  font-family:inherit;
+  color:var(--text);
+  background:#fff;
+  cursor:pointer;
+}
+
+.presupuestos-controles input[type="month"]:focus{
+  outline:none;
+  border-color:var(--accent);
+  box-shadow:0 0 0 3px rgba(47,122,93,0.15);
+}
+
+/* ---------- Alerta resumen de presupuestos excedidos ---------- */
+.banner-alerta-excedidos{
+  background:var(--nivel-excedido-bg);
+  color:var(--nivel-excedido);
+  border:1px solid rgba(179,38,30,0.25);
+  font-weight:600;
+}
+
+/* ---------- Grid de tarjetas ---------- */
+.grid-presupuestos{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
+  gap:16px;
+}
+
+.grid-presupuestos .estado-vacio,
+.grid-presupuestos .estado-error{
+  grid-column:1 / -1;
+}
+
+/* ---------- Tarjeta de presupuesto ---------- */
+.presupuesto-card{
+  background:var(--paper-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:16px 18px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  border-left:4px solid var(--nivel-bajo);
+  transition:box-shadow 0.15s, transform 0.15s;
+}
+
+.presupuesto-card:hover{
+  box-shadow:0 4px 14px rgba(0,0,0,0.06);
+}
+
+.presupuesto-card.nivel-bajo{ border-left-color:var(--nivel-bajo); }
+.presupuesto-card.nivel-medio{ border-left-color:var(--nivel-medio); }
+.presupuesto-card.nivel-alto{ border-left-color:var(--nivel-alto); }
+.presupuesto-card.nivel-excedido{ border-left-color:var(--nivel-excedido); }
+
+.presupuesto-card-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.presupuesto-nombre{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-weight:600;
+  color:var(--text);
+  font-size:15px;
+}
+
+/* ---------- Montos ---------- */
+.presupuesto-montos{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:14px;
+  color:var(--text);
+}
+
+.monto-gastado{
+  font-weight:700;
+  font-size:17px;
+}
+
+.monto-separador{
+  color:var(--text-muted);
+  margin:0 4px;
+  font-family:inherit;
+}
+
+.monto-maximo{
+  color:var(--text-muted);
+}
+
+/* ---------- Barra de progreso ---------- */
+.barra-progreso-track{
+  width:100%;
+  height:10px;
+  border-radius:999px;
+  background:var(--paper);
+  border:1px solid var(--border);
+  overflow:hidden;
+}
+
+.barra-progreso-fill{
+  height:100%;
+  border-radius:999px;
+  background:var(--nivel-bajo);
+  transition:width 0.3s ease, background 0.3s ease;
+}
+
+.nivel-bajo      .barra-progreso-fill{ background:var(--nivel-bajo); }
+.nivel-medio     .barra-progreso-fill{ background:var(--nivel-medio); }
+.nivel-alto      .barra-progreso-fill{ background:var(--nivel-alto); }
+.nivel-excedido  .barra-progreso-fill{ background:var(--nivel-excedido); }
+
+/* ---------- Pie de la tarjeta ---------- */
+.presupuesto-card-footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:13px;
+}
+
+.presupuesto-porcentaje{
+  color:var(--text-muted);
+  font-weight:600;
+}
+
+.presupuesto-estado-tag{
+  padding:3px 10px;
+  border-radius:999px;
+  font-weight:600;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:0.03em;
+}
+
+.nivel-bajo      .presupuesto-estado-tag{ background:var(--nivel-bajo-bg);     color:var(--nivel-bajo); }
+.nivel-medio     .presupuesto-estado-tag{ background:var(--nivel-medio-bg);    color:var(--nivel-medio); }
+.nivel-alto      .presupuesto-estado-tag{ background:var(--nivel-alto-bg);     color:var(--nivel-alto); }
+.nivel-excedido  .presupuesto-estado-tag{ background:var(--nivel-excedido-bg); color:var(--nivel-excedido); }
+
+.presupuesto-excedido-nota{
+  font-size:13px;
+  font-weight:600;
+  color:var(--nivel-excedido);
+  background:var(--nivel-excedido-bg);
+  border-radius:8px;
+  padding:6px 10px;
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 720px){
+  .grid-presupuestos{
+    grid-template-columns:1fr;
+  }
+
+  .presupuestos-controles{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .presupuestos-controles .field,
+  .presupuestos-controles .btn-primary{
+    flex:1 1 auto;
+  }
+}
+
+/* ---------- Clases Independientes (Reemplazo de estiloGastos.css) ---------- */
+.acciones-celda {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icono {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--text-muted);
+  transition: color 0.2s ease, transform 0.1s ease;
+  padding: 4px;
+}
+
+.btn-icono:hover {
+  color: var(--accent-strong);
+  transform: scale(1.1);
+}
+
+.btn-icono.peligro:hover {
+  color: var(--nivel-excedido);
+}

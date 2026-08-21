@@ -1,0 +1,361 @@
+body{ background:var(--paper); }
+
+/* ---------- Layout general: sidebar + contenido ---------- */
+.app-shell{
+  min-height:100vh;
+  display:grid;
+  grid-template-columns: 240px 1fr;
+}
+
+@media (max-width: 900px){
+  .app-shell{ grid-template-columns: 1fr; }
+}
+
+/* ---------- Sidebar ---------- */
+.sidebar{
+  background:var(--ink);
+  color:var(--paper);
+  padding:28px 20px;
+  display:flex;
+  flex-direction:column;
+  gap:32px;
+}
+
+@media (max-width: 900px){
+  .sidebar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    padding:16px 20px;
+  }
+  .sidebar .nav-list, .sidebar .sidebar-foot{ display:none; }
+}
+
+.sidebar .brand-mark{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.sidebar .brand-mark .glyph{
+  width:30px; height:30px;
+  border-radius:8px;
+  background:var(--accent);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'IBM Plex Mono', monospace;
+  font-weight:500;
+  color:var(--paper);
+  font-size:14px;
+}
+
+.sidebar .brand-mark span{
+  font-family:'Fraunces', serif;
+  font-size:18px;
+}
+
+.nav-list{
+  list-style:none;
+  margin:0; padding:0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.nav-list a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius:9px;
+  color:#B9C4BC;
+  text-decoration:none;
+  font-size:14px;
+  font-weight:500;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-list a:hover{ background:rgba(237,239,234,0.08); color:#fff; }
+
+.nav-list a.active{
+  background:var(--accent);
+  color:#fff;
+}
+
+.sidebar-foot{
+  margin-top:auto;
+  border-top:1px solid rgba(237,239,234,0.14);
+  padding-top:16px;
+}
+
+.sidebar-foot-acciones{
+  display:flex;
+  gap:8px;
+}
+
+.sidebar-foot-acciones .logout-btn{
+  flex:1;
+  width:auto;
+  text-align:center;
+  text-decoration:none;
+  justify-content:center;
+}
+
+.logout-btn{
+  width:100%;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:none;
+  border:1px solid rgba(237,239,234,0.2);
+  color:#DCE4DF;
+  padding:9px 12px;
+  border-radius:9px;
+  font-size:13.5px;
+  cursor:pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.logout-btn:hover{ background:rgba(237,239,234,0.08); border-color:rgba(237,239,234,0.35); }
+
+/* ---------- Contenido principal ---------- */
+.main {
+  padding: 32px 40px 56px;
+  max-width: 1800px; /* Aumentado de 1100px a 1400px */
+}
+
+/* Magia de columnas */
+.content-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2 partes para la tabla, 1 parte para el gráfico */
+  gap: 24px;
+  align-items: start;
+}
+
+/* Responsivo: Si la pantalla es pequeña (laptop/tablet), apilar uno debajo del otro */
+@media (max-width: 1024px) {
+  .content-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px){
+  .main{ padding: 24px 18px 40px; }
+}
+
+.main-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:28px;
+  flex-wrap:wrap;
+}
+
+.main-header h1{
+  font-size:26px;
+  font-weight:600;
+}
+
+.main-header .fecha{
+  font-size:13px;
+  color:var(--text-muted);
+  margin-top:4px;
+}
+
+.btn-primary{
+  border:none;
+  background:var(--ink);
+  color:#fff;
+  font-weight:600;
+  font-size:14px;
+  padding:11px 18px;
+  border-radius:10px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover{ background:var(--accent-strong); }
+
+/* ---------- Tarjetas de resumen ---------- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.summary-card{
+  background:var(--paper-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:18px 20px;
+}
+
+.summary-card .label{
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--text-muted);
+}
+
+.summary-card .value{
+  margin-top:8px;
+  font-family:'IBM Plex Mono', monospace;
+  font-size:24px;
+  color:var(--ink);
+}
+
+.summary-card .value.skeleton{
+  color:transparent;
+  background:linear-gradient(90deg, var(--border) 25%, #EDEBE2 37%, var(--border) 63%);
+  background-size:400% 100%;
+  animation: skeleton 1.4s ease infinite;
+  border-radius:6px;
+  display:inline-block;
+  min-width:70px;
+}
+
+@keyframes skeleton{
+  0%{ background-position: 100% 50%; }
+  100%{ background-position: 0 50%; }
+}
+
+/* ---------- Sección de gastos recientes ---------- */
+.section-card{
+  background:var(--paper-card);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:22px 24px 8px;
+}
+
+.section-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:14px;
+}
+
+.section-header h2{
+  font-size:17px;
+  font-weight:600;
+}
+
+.gasto-row{
+  display:grid;
+  grid-template-columns: 1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+
+.gasto-row:last-child{ border-bottom:none; }
+
+.gasto-info .descripcion{
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--text);
+}
+
+.gasto-info .meta{
+  font-size:12.5px;
+  color:var(--text-muted);
+  margin-top:2px;
+}
+
+.categoria-tag{
+  font-size:11.5px;
+  font-weight:600;
+  padding:4px 10px;
+  border-radius:999px;
+  background:#EAF5EF;
+  color:var(--accent-strong);
+  white-space:nowrap;
+}
+
+.gasto-monto{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:14.5px;
+  color:var(--ink);
+  white-space:nowrap;
+}
+
+.estado-vacio, .estado-error{
+  text-align:center;
+  padding:36px 12px;
+  color:var(--text-muted);
+  font-size:14px;
+}
+
+.estado-error{ color:var(--error); }
+
+/* ---------- Modal: agregar gasto ---------- */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(20,35,28,0.45);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:50;
+}
+
+.modal-overlay.show{ display:flex; }
+
+.modal-card{
+  width:100%;
+  max-width:420px;
+  background:var(--paper-card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  padding:28px 26px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-card h2{
+  font-size:20px;
+  margin-bottom:18px;
+}
+
+.modal-actions{
+  display:flex;
+  gap:10px;
+  margin-top:6px;
+}
+
+.btn-secondary{
+  flex:1;
+  border:1px solid var(--border);
+  background:#fff;
+  color:var(--text);
+  font-weight:600;
+  font-size:14px;
+  padding:11px 0;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.btn-secondary:hover{ background:var(--paper); }
+
+.modal-actions .btn-primary{ flex:1; justify-content:center; }
+
+/* Limitar altura de la lista de gastos recientes */
+#listaGastos {
+  max-height: 400px; /* Puedes ajustar este número si la quieres más alta o corta */
+  overflow-y: auto;
+  padding-right: 8px; /* Espacio para que el texto no choque con la barra */
+}
+
+/* Estilizar la barra de scroll (Opcional, pero se ve más profesional) */
+#listaGastos::-webkit-scrollbar {
+  width: 6px;
+}
+#listaGastos::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 4px;
+}

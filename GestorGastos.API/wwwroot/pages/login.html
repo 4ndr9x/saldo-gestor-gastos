@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saldo — Acceso</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/estiloLogin.css">
+</head>
+<body>
+
+<div class="shell">
+
+  <aside class="brand-panel">
+    <div>
+      <div class="brand-mark">
+        <div class="glyph">S</div>
+        <span>Saldo</span>
+      </div>
+      <div class="brand-copy">
+        <h1>Cada peso, en su lugar.</h1>
+        <p>Registra tus gastos, entiende tus hábitos y mantén tu balance siempre claro.</p>
+      </div>
+
+      <div class="ledger" id="ledger">
+        <div class="ledger-row" style="animation-delay:0.1s">
+          <span class="cat">Café</span><span class="amt">RD$ 150.00</span>
+        </div>
+        <div class="ledger-row" style="animation-delay:0.25s">
+          <span class="cat">Transporte</span><span class="amt">RD$ 320.00</span>
+        </div>
+        <div class="ledger-row" style="animation-delay:0.4s">
+          <span class="cat">Supermercado</span><span class="amt">RD$ 1,840.00</span>
+        </div>
+        <div class="ledger-total">
+          <span class="label">Total del mes</span>
+          <span class="value" id="ledgerTotal">RD$ 0.00</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="brand-foot">© 2026 Saldo · Gestor de Gastos</div>
+  </aside>
+
+  <main class="form-panel">
+    <div class="card">
+
+      <div class="tabs" id="tabs">
+        <div class="indicator"></div>
+        <button class="tab-btn active" id="tabLogin" type="button">Entrar</button>
+        <button class="tab-btn" id="tabRegistro" type="button">Crear cuenta</button>
+      </div>
+
+      <div id="viewLogin">
+        <h2 class="panel-title">Bienvenido de nuevo</h2>
+        <p class="panel-sub">Ingresa tus credenciales para continuar.</p>
+
+        <div class="banner" id="loginBanner"></div>
+
+        <form id="formLogin" class="active" novalidate>
+          <div class="field">
+            <label for="loginCorreo">Correo electrónico</label>
+            <input type="email" id="loginCorreo" name="correo" autocomplete="email" required>
+            <span class="field-error" id="errLoginCorreo"></span>
+          </div>
+          <div class="field">
+            <label for="loginPassword">Contraseña</label>
+            <input type="password" id="loginPassword" name="password" autocomplete="current-password" required>
+            <span class="field-error" id="errLoginPassword"></span>
+          </div>
+
+          <div class="row-between">
+            <label class="remember">
+              <input type="checkbox" id="loginRecordar">
+              Mantener sesión iniciada
+            </label>
+          </div>
+
+          <button type="submit" class="submit-btn" id="btnLogin">
+            <span class="spinner"></span>
+            <span class="btn-label">Entrar</span>
+          </button>
+        </form>
+
+        <p class="switch-hint">¿No tienes cuenta? <button type="button" id="linkToRegistro">Regístrate</button></p>
+      </div>
+
+      <div id="viewRegistro" style="display:none;">
+        <h2 class="panel-title">Crea tu cuenta</h2>
+        <p class="panel-sub">Empieza a llevar el control de tus gastos hoy.</p>
+
+        <div class="banner" id="registroBanner"></div>
+
+        <form id="formRegistro" novalidate>
+          <div class="field">
+            <label for="regNombre">Nombre completo</label>
+            <input type="text" id="regNombre" name="nombre" autocomplete="name" required>
+            <span class="field-error" id="errRegNombre"></span>
+          </div>
+          <div class="field">
+            <label for="regCorreo">Correo electrónico</label>
+            <input type="email" id="regCorreo" name="correo" autocomplete="email" required>
+            <span class="field-error" id="errRegCorreo"></span>
+          </div>
+          <div class="field">
+            <label for="regPassword">Contraseña</label>
+            <input type="password" id="regPassword" name="password" autocomplete="new-password" required>
+            <span class="field-error" id="errRegPassword"></span>
+          </div>
+          <div class="field">
+            <label for="regConfirmarPassword">Confirmar contraseña</label>
+            <input type="password" id="regConfirmarPassword" name="confirmarPassword" autocomplete="new-password" required>
+            <span class="field-error" id="errRegConfirmarPassword"></span>
+          </div>
+
+          <div class="field">
+            <label for="regMoneda">Moneda principal</label>
+            <select id="regMoneda" name="moneda" required>
+              <option value="DOP" selected>DOP — Peso dominicano</option>
+              <option value="USD">USD — Dólar estadounidense</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="MXN">MXN — Peso mexicano</option>
+              <option value="COP">COP — Peso colombiano</option>
+              <option value="ARS">ARS — Peso argentino</option>
+              <option value="GBP">GBP — Libra esterlina</option>
+              <option value="CAD">CAD — Dólar canadiense</option>
+            </select>
+            <span class="field-hint">Podrás cambiarla luego desde tu perfil.</span>
+            <span class="field-error" id="errRegMoneda"></span>
+          </div>
+
+          <button type="submit" class="submit-btn" id="btnRegistro">
+            <span class="spinner"></span>
+            <span class="btn-label">Crear cuenta</span>
+          </button>
+        </form>
+
+        <p class="switch-hint">¿Ya tienes cuenta? <button type="button" id="linkToLogin">Inicia sesión</button></p>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<script src="../js/scriptComun.js"></script>
+<script src="../js/scriptAutenticacion.js"></script>
+
+</body>
+</html>

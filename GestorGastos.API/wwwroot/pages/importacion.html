@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saldo — Importar</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/estiloLogin.css">
+<link rel="stylesheet" href="../css/estiloDashboard.css">
+<link rel="stylesheet" href="../css/estiloImportacion.css">
+
+<script>
+  (function guardInmediato(){
+    const token = localStorage.getItem('gestor_gastos_token') || sessionStorage.getItem('gestor_gastos_token');
+    if(!token){
+      window.location.replace('../pages/login.html');
+    }
+  })();
+</script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand-mark">
+        <div class="glyph">S</div>
+        <span>Saldo</span>
+      </div>
+
+      <ul class="nav-list" style="margin-top:28px;">
+        <li><a href="dashboard.html">Resumen</a></li>
+        <li><a href="gastos.html">Gastos</a></li>
+        <li><a href="catalogos.html">Catálogos</a></li>
+        <li><a href="reportes.html">Reportes</a></li>
+        <li><a href="presupuestos.html">Presupuestos</a></li>
+        <li><a href="importacion.html" class="active">Importar gastos</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-foot sidebar-foot-acciones">
+      <a href="perfil.html" class="logout-btn">Mi Cuenta</a>
+      <button class="logout-btn" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ============ CONTENIDO PRINCIPAL ============ -->
+  <main class="main">
+
+    <div class="main-header">
+        <div>
+            <h1>Importar gastos</h1>
+            <p class="fecha">Sube un archivo Excel (.xlsx) con tus gastos para registrarlos en lote.</p>
+        </div>
+    </div>
+
+    <div class="banner" id="importacionBanner"></div>
+
+    <!-- ---------- Tarjeta principal: Drag & Drop ---------- -->
+    <section class="section-card">
+
+      <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Seleccionar o arrastrar archivo Excel">
+        <div class="dropzone-icono">⇪</div>
+        <p class="dropzone-titulo">Arrastra tu archivo Excel aquí</p>
+        <p class="dropzone-sub">o haz clic para buscarlo en tu equipo · solo .xlsx</p>
+      </div>
+
+      <!-- CRÍTICO: input oculto, exactamente este selector -->
+      <input type="file" accept=".xlsx" id="archivoExcel" hidden>
+
+      <div class="archivo-seleccionado" id="archivoSeleccionado" style="display:none;">
+        <div class="archivo-info">
+          <span class="archivo-icono">📄</span>
+          <div>
+            <div class="archivo-nombre" id="nombreArchivo"></div>
+            <div class="archivo-peso" id="pesoArchivo"></div>
+          </div>
+        </div>
+        <button type="button" class="btn-icono" id="btnQuitarArchivo" title="Quitar archivo">✕</button>
+      </div>
+
+      <div class="importar-acciones">
+        <button type="button" class="btn-primary" id="btnImportar" disabled>
+          <span class="spinner"></span>
+          <span class="btn-label">Importar archivo</span>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ---------- Resumen de resultados (oculto hasta la primera importación) ---------- -->
+    <div id="resumenImportacion" style="display:none;" class="resumen-card"></div>
+
+    <div>
+      <p></p>
+    </div>
+
+    <div class="plantilla-info-box">
+        <div class="plantilla-text">
+          <h3>¿No estás seguro del formato?</h3>
+          <p>Descarga la plantilla oficial de Excel. Utiliza las columnas correctas y asegúrate de que tus datos se importen sin conflictos.</p>
+        </div>
+      <button type="button" id="btnDescargarPlantilla" class="btn-secondary">
+        <span class="spinner"></span>
+        <span class="btn-label">Descargar Plantilla</span>
+      </button>
+    </div>
+
+  </main>
+</div>
+
+<script src="../js/scriptComun.js"></script>
+<script src="../js/scriptImportacion.js"></script>
+
+</body>
+</html>

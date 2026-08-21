@@ -1,0 +1,65 @@
+.perfil-grid{
+  display:grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap:20px;
+  align-items:start;
+}
+
+@media (max-width: 780px){
+  .perfil-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
+.perfil-grid .section-card form {
+  display: block;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.perfil-grid .btn-primary{
+  align-self:flex-start;
+}
+
+.zona-peligro{
+  border-color:rgba(179,38,30,0.35);
+  background:linear-gradient(180deg, var(--error-bg) 0%, var(--paper-card) 90px);
+}
+
+.zona-peligro .section-header h2{
+  color:var(--error);
+}
+
+.zona-peligro-texto{
+  font-size:14px;
+  color:var(--text-muted);
+  line-height:1.55;
+  margin:0 0 18px;
+}
+
+.btn-peligro{
+  border:1px solid var(--error);
+  background:var(--error);
+  color:#fff;
+  font-weight:600;
+  font-size:14px;
+  padding:11px 18px;
+  border-radius:10px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-peligro:hover{
+  background:#8f1f19;
+  border-color:#8f1f19;
+}
+
+.btn-peligro:disabled{
+  opacity:0.6;
+  cursor:not-allowed;
+}
+
+.btn-peligro.loading .spinner{ display:inline-block; }

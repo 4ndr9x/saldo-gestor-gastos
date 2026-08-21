@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Saldo — Catálogos</title>
+<link rel="icon" type="image/x-icon" href="/favicon.ico?v=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/estiloLogin.css">
+<link rel="stylesheet" href="../css/estiloDashboard.css">
+<link rel="stylesheet" href="../css/estiloCatalogos.css">
+
+<script>
+  (function guardInmediato(){
+    const token = localStorage.getItem('gestor_gastos_token') || sessionStorage.getItem('gestor_gastos_token');
+    if(!token){
+      window.location.replace('../pages/login.html');
+    }
+  })();
+</script>
+</head>
+<body>
+
+<div class="app-shell">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <div>
+      <div class="brand-mark">
+        <div class="glyph">S</div>
+        <span>Saldo</span>
+      </div>
+
+      <ul class="nav-list" style="margin-top:28px;">
+        <li><a href="dashboard.html">Resumen</a></li>
+        <li><a href="gastos.html">Gastos</a></li>
+        <li><a href="catalogos.html" class="active">Catálogos</a></li>
+        <li><a href="reportes.html">Reportes</a></li>
+        <li><a href="presupuestos.html">Presupuestos</a></li>
+        <li><a href="importacion.html">Importar gastos</a></li>
+      </ul>
+    </div>
+
+    <div class="sidebar-foot sidebar-foot-acciones">
+      <a href="perfil.html" class="logout-btn">Mi Cuenta</a>
+      <button class="logout-btn" id="btnLogout">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ============ CONTENIDO PRINCIPAL ============ -->
+  <main class="main">
+
+    <div class="main-header">
+      <div>
+        <h1 id="tituloCatalogo">Categorías</h1>
+        <p class="fecha">Administra los catálogos que usas al registrar tus gastos.</p>
+      </div>
+      <button class="btn-primary" id="btnAbrirModal">
+        <span class="btn-label">+ Agregar categoría</span>
+      </button>
+    </div>
+
+    <!-- ---------- Tabs ---------- -->
+    <div class="tabs-catalogo">
+      <button type="button" class="tab-catalogo-btn active" data-tab="categorias">Categorías</button>
+      <button type="button" class="tab-catalogo-btn" data-tab="metodosPago">Métodos de Pago</button>
+    </div>
+
+    <div class="banner" id="catalogosBanner"></div>
+
+    <!-- ---------- Tabla (cambia según el tab activo) ---------- -->
+    <section class="section-card tabla-card">
+      <div id="tablaCatalogoContenedor" class="tabla-scroll">
+        <div class="estado-vacio">Cargando...</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ============ MODAL DINÁMICO: AGREGAR / EDITAR (categoría o método de pago) ============ -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-card">
+    <h2 id="modalTitulo">Agregar categoría</h2>
+
+    <div class="banner" id="modalBanner"></div>
+
+    <form id="formCatalogo" class="active" novalidate>
+      <input type="hidden" id="catalogoId" value="">
+      <div class="field" style="margin-bottom:20px;">
+        <label for="catalogoNombre">Nombre</label>
+        <input type="text" id="catalogoNombre" name="nombre" placeholder="Ej. Académico, Transporte, Tarjeta..." required>
+        <span class="field-error" id="errCatalogoNombre"></span>
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnCancelarModal">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btnGuardarCatalogo">
+          <span class="spinner"></span>
+          <span class="btn-label">Guardar</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../js/scriptComun.js"></script>
+<script src="../js/scriptCatalogos.js"></script>
+
+</body>
+</html>
