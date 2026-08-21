@@ -188,6 +188,9 @@ app.UseMiddleware<GestorErroresMiddleware>();
 app.UseHttpsRedirection();
 app.UseCors("Frontend");
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
